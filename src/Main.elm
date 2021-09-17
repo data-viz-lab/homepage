@@ -68,7 +68,7 @@ subscriptions _ =
 -- INIT
 
 
-init : Maybe Int -> ( Model, Cmd Msg )
+init : Nothing -> ( Model, Cmd Msg )
 init _ =
     ( {}, Cmd.none )
 
