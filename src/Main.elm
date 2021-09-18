@@ -1,23 +1,9 @@
-port module Main exposing (..)
+module Main exposing (..)
 
-import Axis
+import Bar
 import Browser
-import Chart.Bar as Bar
-import Chart.Line as Line
-import Color exposing (rgb255)
-import Dict exposing (Dict)
 import Html exposing (Html)
 import Html.Attributes exposing (class)
-import Html.Events
-import Set
-import Shape
-
-
-
--- PORTS
-
-
-port observeDimensions : String -> Cmd msg
 
 
 
@@ -25,7 +11,7 @@ port observeDimensions : String -> Cmd msg
 
 
 type alias Model =
-    {}
+    { width : Int, height : Int }
 
 
 
@@ -40,7 +26,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         NoOp ->
-            ( Model, Cmd.none )
+            ( model, Cmd.none )
 
 
 
@@ -50,7 +36,7 @@ update msg model =
 view : Model -> Html Msg
 view model =
     Html.div []
-        [ Html.text "TODO"
+        [ Bar.verticalGrouped
         ]
 
 
@@ -68,9 +54,9 @@ subscriptions _ =
 -- INIT
 
 
-init : Nothing -> ( Model, Cmd Msg )
-init _ =
-    ( {}, Cmd.none )
+init : { width : Int, height : Int } -> ( Model, Cmd Msg )
+init { width, height } =
+    ( { width = width, height = height }, Cmd.none )
 
 
 
