@@ -5201,7 +5201,104 @@ var $author$project$Main$update = F2(
 	function (msg, model) {
 		return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 	});
+var $elm$json$Json$Encode$string = _Json_wrap;
+var $elm$html$Html$Attributes$stringProperty = F2(
+	function (key, string) {
+		return A2(
+			_VirtualDom_property,
+			key,
+			$elm$json$Json$Encode$string(string));
+	});
+var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
 var $elm$html$Html$div = _VirtualDom_node('div');
+var $elm$html$Html$section = _VirtualDom_node('section');
+var $author$project$Main$exampleView = F2(
+	function (content, model) {
+		return A2(
+			$elm$html$Html$section,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('example')
+				]),
+			content);
+	});
+var $elm$html$Html$h1 = _VirtualDom_node('h1');
+var $elm$html$Html$h2 = _VirtualDom_node('h2');
+var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
+var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
+var $author$project$Main$introView = function (model) {
+	return A2(
+		$elm$html$Html$section,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$class('intro')
+			]),
+		_List_fromArray(
+			[
+				A2(
+				$elm$html$Html$h1,
+				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$text('elm-chart-builder')
+					])),
+				A2(
+				$elm$html$Html$h2,
+				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$text('Easy to create and accessible charts in elm')
+					]))
+			]));
+};
+var $author$project$Bar$codePrev = A2(
+	$elm$html$Html$div,
+	_List_fromArray(
+		[
+			$elm$html$Html$Attributes$class('example__code-prev')
+		]),
+	_List_Nil);
+var $author$project$Bar$dataPrev = A2(
+	$elm$html$Html$div,
+	_List_fromArray(
+		[
+			$elm$html$Html$Attributes$class('example__data-prev')
+		]),
+	_List_Nil);
+var $elm$html$Html$a = _VirtualDom_node('a');
+var $elm$html$Html$h3 = _VirtualDom_node('h3');
+var $elm$html$Html$Attributes$href = function (url) {
+	return A2(
+		$elm$html$Html$Attributes$stringProperty,
+		'href',
+		_VirtualDom_noJavaScriptUri(url));
+};
+var $author$project$Bar$desc = A2(
+	$elm$html$Html$div,
+	_List_fromArray(
+		[
+			$elm$html$Html$Attributes$class('example__desc')
+		]),
+	_List_fromArray(
+		[
+			A2(
+			$elm$html$Html$h3,
+			_List_Nil,
+			_List_fromArray(
+				[
+					$elm$html$Html$text('Grouped vertical bar chart')
+				])),
+			A2(
+			$elm$html$Html$a,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$href('https://github.com/data-viz-lab/homepage/blob/main/src/Bar.elm')
+				]),
+			_List_fromArray(
+				[
+					$elm$html$Html$text('source code')
+				]))
+		]));
 var $data_viz_lab$elm_chart_builder$Chart$Bar$Accessor = F3(
 	function (xGroup, xValue, yValue) {
 		return {xGroup: xGroup, xValue: xValue, yValue: yValue};
@@ -5241,12 +5338,20 @@ var $avh4$elm_color$Color$rgb255 = F3(
 			$avh4$elm_color$Color$scaleFrom255(b),
 			1.0);
 	});
-var $author$project$Bar$colorScheme = _List_fromArray(
+var $gampleman$elm_visualization$Scale$Color$tableau10 = _List_fromArray(
 	[
-		A3($avh4$elm_color$Color$rgb255, 38, 70, 83),
-		A3($avh4$elm_color$Color$rgb255, 233, 196, 106),
-		A3($avh4$elm_color$Color$rgb255, 231, 111, 81)
+		A3($avh4$elm_color$Color$rgb255, 78, 121, 167),
+		A3($avh4$elm_color$Color$rgb255, 242, 142, 44),
+		A3($avh4$elm_color$Color$rgb255, 225, 87, 89),
+		A3($avh4$elm_color$Color$rgb255, 118, 183, 178),
+		A3($avh4$elm_color$Color$rgb255, 89, 161, 79),
+		A3($avh4$elm_color$Color$rgb255, 237, 201, 73),
+		A3($avh4$elm_color$Color$rgb255, 175, 122, 161),
+		A3($avh4$elm_color$Color$rgb255, 255, 157, 167),
+		A3($avh4$elm_color$Color$rgb255, 156, 117, 95),
+		A3($avh4$elm_color$Color$rgb255, 186, 176, 171)
 	]);
+var $author$project$Bar$colorScheme = $gampleman$elm_visualization$Scale$Color$tableau10;
 var $author$project$Bar$data = _List_fromArray(
 	[
 		{groupLabel: 'A', x: 'a', y: 1000},
@@ -5256,7 +5361,6 @@ var $author$project$Bar$data = _List_fromArray(
 		{groupLabel: 'B', x: 'b', y: 2300},
 		{groupLabel: 'B', x: 'c', y: 1600}
 	]);
-var $author$project$Bar$height = 300;
 var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$AccessibilityTableNoLabels = {$: 'AccessibilityTableNoLabels'};
 var $data_viz_lab$elm_chart_builder$Chart$Internal$Axis$Bottom = function (a) {
 	return {$: 'Bottom', a: a};
@@ -5981,7 +6085,6 @@ var $gampleman$elm_visualization$Scale$rangeExtent = function (_v0) {
 	return A2(options.rangeExtent, options.domain, options.range);
 };
 var $elm$svg$Svg$Attributes$stroke = _VirtualDom_attribute('stroke');
-var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$svg$Svg$text = $elm$virtual_dom$VirtualDom$text;
 var $elm$svg$Svg$Attributes$textAnchor = _VirtualDom_attribute('text-anchor');
 var $elm$svg$Svg$text_ = $elm$svg$Svg$trustedNode('text');
@@ -6597,15 +6700,6 @@ var $gampleman$elm_visualization$Scale$clamp = function (_v0) {
 			scale,
 			{convert: convert_}));
 };
-var $elm$json$Json$Encode$string = _Json_wrap;
-var $elm$html$Html$Attributes$stringProperty = F2(
-	function (key, string) {
-		return A2(
-			_VirtualDom_property,
-			key,
-			$elm$json$Json$Encode$string(string));
-	});
-var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
 var $elm$core$List$filter = F2(
 	function (isGood, list) {
 		return A3(
@@ -8496,7 +8590,6 @@ var $data_viz_lab$elm_chart_builder$Chart$Internal$Table$allRowsEqualLength = fu
 			remainingRows);
 	}
 };
-var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
 var $data_viz_lab$elm_chart_builder$Chart$Internal$Table$generate = function (data) {
 	var _v0 = $data_viz_lab$elm_chart_builder$Chart$Internal$Table$allRowsEqualLength(data);
 	if (_v0.$ === 'Ok') {
@@ -10032,6 +10125,15 @@ var $data_viz_lab$elm_chart_builder$Chart$Bar$render = F2(
 				return $elm$html$Html$text('');
 		}
 	});
+var $author$project$Constants$goldenRatio = 1.618;
+var $author$project$Bar$toHeight = function (width) {
+	return $elm$core$Basics$round(width / $author$project$Constants$goldenRatio);
+};
+var $author$project$Constants$maxPageWidth = 1400;
+var $author$project$Bar$toWidth = function (pageWidth) {
+	var width = (_Utils_cmp(pageWidth, $author$project$Constants$maxPageWidth) > 0) ? $author$project$Constants$maxPageWidth : pageWidth;
+	return (width / 4) | 0;
+};
 var $cuducos$elm_format_number$FormatNumber$Locales$Exact = function (a) {
 	return {$: 'Exact', a: a};
 };
@@ -10463,7 +10565,6 @@ var $author$project$Bar$valueFormatter = $cuducos$elm_format_number$FormatNumber
 		{
 			decimals: $cuducos$elm_format_number$FormatNumber$Locales$Exact(0)
 		}));
-var $author$project$Bar$width = 400;
 var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$ColorPalette = function (a) {
 	return {$: 'ColorPalette', a: a};
 };
@@ -10567,31 +10668,53 @@ var $author$project$Bar$yAxis = $data_viz_lab$elm_chart_builder$Chart$Bar$axisLe
 			$gampleman$elm_visualization$Axis$tickFormat($author$project$Bar$valueFormatter)
 		]));
 var $data_viz_lab$elm_chart_builder$Chart$Bar$yColumnTitle = $data_viz_lab$elm_chart_builder$Chart$Internal$Type$YColumnTitle;
-var $author$project$Bar$verticalGrouped = A2(
-	$data_viz_lab$elm_chart_builder$Chart$Bar$render,
-	_Utils_Tuple2($author$project$Bar$data, $author$project$Bar$accessor),
-	A2(
-		$data_viz_lab$elm_chart_builder$Chart$Bar$withYAxis,
-		$author$project$Bar$yAxis,
-		$data_viz_lab$elm_chart_builder$Chart$Bar$withGroupedLayout(
-			A2(
-				$data_viz_lab$elm_chart_builder$Chart$Bar$withColumnTitle,
-				$data_viz_lab$elm_chart_builder$Chart$Bar$yColumnTitle($author$project$Bar$valueFormatter),
+var $author$project$Bar$verticalGrouped = function (width) {
+	return A2(
+		$data_viz_lab$elm_chart_builder$Chart$Bar$render,
+		_Utils_Tuple2($author$project$Bar$data, $author$project$Bar$accessor),
+		A2(
+			$data_viz_lab$elm_chart_builder$Chart$Bar$withYAxis,
+			$author$project$Bar$yAxis,
+			$data_viz_lab$elm_chart_builder$Chart$Bar$withGroupedLayout(
 				A2(
-					$data_viz_lab$elm_chart_builder$Chart$Bar$withColorPalette,
-					$author$project$Bar$colorScheme,
-					$data_viz_lab$elm_chart_builder$Chart$Bar$init(
-						{
-							height: $author$project$Bar$height,
-							margin: {bottom: 20, left: 40, right: 10, top: 5},
-							width: $author$project$Bar$width
-						}))))));
+					$data_viz_lab$elm_chart_builder$Chart$Bar$withColumnTitle,
+					$data_viz_lab$elm_chart_builder$Chart$Bar$yColumnTitle($author$project$Bar$valueFormatter),
+					A2(
+						$data_viz_lab$elm_chart_builder$Chart$Bar$withColorPalette,
+						$author$project$Bar$colorScheme,
+						$data_viz_lab$elm_chart_builder$Chart$Bar$init(
+							{
+								height: $author$project$Bar$toHeight(
+									$author$project$Bar$toWidth(width)),
+								margin: {bottom: 20, left: 40, right: 10, top: 5},
+								width: $author$project$Bar$toWidth(width)
+							}))))));
+};
+var $author$project$Bar$view = function (_v0) {
+	var width = _v0.width;
+	return _List_fromArray(
+		[
+			$author$project$Bar$desc,
+			$author$project$Bar$verticalGrouped(width),
+			$author$project$Bar$dataPrev,
+			$author$project$Bar$codePrev
+		]);
+};
 var $author$project$Main$view = function (model) {
 	return A2(
 		$elm$html$Html$div,
-		_List_Nil,
 		_List_fromArray(
-			[$author$project$Bar$verticalGrouped]));
+			[
+				$elm$html$Html$Attributes$class('content')
+			]),
+		_List_fromArray(
+			[
+				$author$project$Main$introView(model),
+				A2(
+				$author$project$Main$exampleView,
+				$author$project$Bar$view(model),
+				model)
+			]));
 };
 var $author$project$Main$main = $elm$browser$Browser$element(
 	{init: $author$project$Main$init, subscriptions: $author$project$Main$subscriptions, update: $author$project$Main$update, view: $author$project$Main$view});

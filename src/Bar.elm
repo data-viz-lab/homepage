@@ -1,21 +1,19 @@
-module Bar exposing (verticalGrouped)
+module Bar exposing (view)
 
 import Axis
 import Chart.Bar as Bar
 import Color exposing (Color, rgb255)
+import Constants
 import FormatNumber
 import FormatNumber.Locales exposing (Decimals(..), usLocale)
 import Html exposing (Html)
-import Html.Attributes exposing (class)
+import Html.Attributes as Attributes
 import Scale.Color
 
 
 colorScheme : List Color
 colorScheme =
-    [ Color.rgb255 38 70 83
-    , Color.rgb255 233 196 106
-    , Color.rgb255 231 111 81
-    ]
+    Scale.Color.tableau10
 
 
 type alias Data =
@@ -56,14 +54,27 @@ accessor =
     Bar.Accessor (.groupLabel >> Just) .x .y
 
 
-width : Float
-width =
-    400
+toWidth : Int -> Float
+toWidth pageWidth =
+    let
+        width =
+            if pageWidth > Constants.maxPageWidth then
+                Constants.maxPageWidth
+
+            else
+                pageWidth
+    in
+    4
+        |> (//) width
+        |> toFloat
 
 
-height : Float
-height =
-    300
+toHeight : Float -> Float
+toHeight width =
+    Constants.goldenRatio
+        |> (/) width
+        |> round
+        |> toFloat
 
 
 valueFormatter : Float -> String
@@ -79,15 +90,43 @@ yAxis =
         ]
 
 
-verticalGrouped : Html msg
-verticalGrouped =
+verticalGrouped : Int -> Html msg
+verticalGrouped width =
     Bar.init
         { margin = { top = 5, right = 10, bottom = 20, left = 40 }
-        , width = width
-        , height = height
+        , width = toWidth width
+        , height = width |> toWidth |> toHeight
         }
         |> Bar.withColorPalette colorScheme
         |> Bar.withColumnTitle (Bar.yColumnTitle valueFormatter)
         |> Bar.withGroupedLayout
         |> Bar.withYAxis yAxis
         |> Bar.render ( data, accessor )
+
+
+desc : Html msg
+desc =
+    Html.div [ Attributes.class "example__desc" ]
+        [ Html.h3 [] [ Html.text "Grouped vertical bar chart" ]
+        , Html.a [ Attributes.href "https://github.com/data-viz-lab/homepage/blob/main/src/Bar.elm" ]
+            [ Html.text "source code" ]
+        ]
+
+
+dataPrev : Html msg
+dataPrev =
+    Html.div [ Attributes.class "example__data-prev" ] []
+
+
+codePrev : Html msg
+codePrev =
+    Html.div [ Attributes.class "example__code-prev" ] []
+
+
+view : { a | width : Int } -> List (Html msg)
+view { width } =
+    [ desc
+    , verticalGrouped width
+    , dataPrev
+    , codePrev
+    ]

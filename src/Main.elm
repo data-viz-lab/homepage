@@ -3,7 +3,7 @@ module Main exposing (..)
 import Bar
 import Browser
 import Html exposing (Html)
-import Html.Attributes exposing (class)
+import Html.Attributes as Attributes
 
 
 
@@ -35,9 +35,23 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    Html.div []
-        [ Bar.verticalGrouped
+    Html.div [ Attributes.class "content" ]
+        [ introView model
+        , exampleView (Bar.view model) model
         ]
+
+
+introView : Model -> Html Msg
+introView model =
+    Html.section [ Attributes.class "intro" ]
+        [ Html.h1 [] [ Html.text "elm-chart-builder" ]
+        , Html.h2 [] [ Html.text "Easy to create and accessible charts in elm" ]
+        ]
+
+
+exampleView : List (Html Msg) -> Model -> Html Msg
+exampleView content model =
+    Html.section [ Attributes.class "example" ] content
 
 
 
