@@ -22,12 +22,17 @@ circle : Symbol
 circle =
     Symbol.circle
         |> Symbol.withStyle [ ( "stroke", "white" ) ]
-        |> Symbol.withSize 8
+        |> Symbol.withSize 10
 
 
 accessor : Line.Accessor Data.ContinuousData
 accessor =
-    Line.cont (Line.AccessorCont (.groupLabel >> Just) .x .y)
+    Line.cont
+        (Line.AccessorCont
+            (.groupLabel >> Just)
+            .x
+            .y
+        )
 
 
 valueFormatter : Float -> String
@@ -71,7 +76,10 @@ verticalGrouped width =
     Line.init
         { margin = Helpers.margin
         , width = Helpers.toChartWidth width
-        , height = width |> Helpers.toChartWidth |> Helpers.toChartHeight
+        , height =
+            width
+                |> Helpers.toChartWidth
+                |> Helpers.toChartHeight
         }
         |> Line.withColorPalette colorScheme
         |> Line.withSymbols [ circle ]
@@ -91,20 +99,48 @@ desc =
         ]
 
 
-dataPrev : Html msg
-dataPrev =
-    Html.div [ Attributes.class "example__data-prev" ] []
-
-
 codePrev : Html msg
 codePrev =
-    Html.div [ Attributes.class "example__code-prev" ] []
+    Helpers.codePrev
+        """ 
+type alias ContinuousData =
+    { x : Float
+    , y : Float
+    , groupLabel : String
+    }
+
+accessor : Line.Accessor Data.ContinuousData
+accessor =
+    Line.cont
+        (Line.AccessorCont
+            (.groupLabel >> Just)
+            .x
+            .y
+        )
+
+verticalGrouped : Int -> Html msg
+verticalGrouped width =
+    Line.init
+        { margin = Helpers.margin
+        , width = Helpers.toChartWidth width
+        , height =
+            width
+                |> Helpers.toChartWidth
+                |> Helpers.toChartHeight
+        }
+        |> Line.withColorPalette colorScheme
+        |> Line.withSymbols [ circle ]
+        |> Line.withLineStyle [ ( "stroke-width", "2" ) ]
+        |> Line.withGroupedLayout
+        |> Line.withYAxis yAxis
+        |> Line.withXAxisCont xAxis
+        |> Line.render ( Data.continuousData, accessor )
+        """
 
 
 view : { a | width : Int } -> List (Html msg)
 view { width } =
     [ desc
     , verticalGrouped width
-    , dataPrev
     , codePrev
     ]

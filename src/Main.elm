@@ -2,6 +2,7 @@ module Main exposing (..)
 
 import Bar
 import Browser
+import Helpers
 import Html exposing (Html)
 import Html.Attributes as Attributes
 import Line
@@ -47,13 +48,25 @@ introView : Model -> Html Msg
 introView model =
     Html.section [ Attributes.class "intro" ]
         [ Html.h1 [] [ Html.text "elm-chart-builder" ]
-        , Html.h2 [] [ Html.text "Easy to create and accessible charts in elm" ]
+        , Html.h2 [] [ Html.text "Accessible and easy to create charts in elm" ]
         ]
 
 
 exampleView : List (Html Msg) -> Model -> Html Msg
 exampleView content model =
-    Html.section [ Attributes.class "example" ] content
+    let
+        height =
+            model.width
+                |> Helpers.toChartWidth
+                |> Helpers.toChartHeight
+                |> (*) 1.2
+                |> String.fromFloat
+    in
+    Html.section
+        [ Attributes.class "example"
+        , Attributes.style "height" (height ++ "px")
+        ]
+        content
 
 
 

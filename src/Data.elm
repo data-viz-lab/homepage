@@ -3,17 +3,14 @@ module Data exposing
     , GroupData
     , continuousData
     , groupData
-    , margin
     )
 
 
-margin : { top : Int, right : Int, left : Int, bottom : Int }
-margin =
-    { top = 5, right = 10, bottom = 20, left = 40 }
-
-
 type alias GroupData =
-    { x : String, y : Float, groupLabel : String }
+    { x : String
+    , y : Float
+    , groupLabel : String
+    }
 
 
 groupData : List GroupData
@@ -46,7 +43,10 @@ groupData =
 
 
 type alias ContinuousData =
-    { x : Float, y : Float, groupLabel : String }
+    { x : Float
+    , y : Float
+    , groupLabel : String
+    }
 
 
 continuousData : List ContinuousData

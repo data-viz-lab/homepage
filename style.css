@@ -32,12 +32,25 @@ body {
   margin: 10px 20px 40px 20px;
 }
 
+.example > div {
+  margin: 20px;
+}
+
 .example__desc {
+  flex: 1;
   line-height: 1.2;
 }
 
-.example > div {
-  flex: 4;
+.example__code-prev {
+  font-family: "Source Code Pro", monospace;
+  flex: 3;
+  overflow: auto;
+  border: 1px solid #cacaca;
+  padding: 10px;
+}
+
+.terminal {
+  font-size: 12px;
 }
 
 footer {
@@ -46,13 +59,13 @@ footer {
 }
 
 h1 {
-  font-size: 28px;
+  font-size: 44px;
   padding: 4px;
   font-weight: 700;
 }
 
 h2 {
-  font-size: 20px;
+  font-size: 22px;
   padding: 2px;
 }
 
@@ -68,16 +81,4 @@ h3 {
 
 .chart-builder__axis text {
   fill: #222;
-}
-
-@media only screen and (max-width: 1200px) {
-  .viz {
-    grid-template-columns: repeat(12, 1fr);
-  }
-}
-
-@media only screen and (max-width: 900px) {
-  .viz {
-    grid-template-columns: repeat(8, 1fr);
-  }
 }

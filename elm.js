@@ -5312,14 +5312,31 @@ var $elm$html$Html$Attributes$stringProperty = F2(
 	});
 var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
 var $elm$html$Html$div = _VirtualDom_node('div');
+var $elm$core$String$fromFloat = _String_fromNumber;
 var $elm$html$Html$section = _VirtualDom_node('section');
+var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
+var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
+var $author$project$Helpers$goldenRatio = 1.618;
+var $elm$core$Basics$round = _Basics_round;
+var $author$project$Helpers$toChartHeight = function (width) {
+	return $elm$core$Basics$round(width / $author$project$Helpers$goldenRatio);
+};
+var $author$project$Helpers$maxPageWidth = 1400;
+var $author$project$Helpers$toChartWidth = function (pageWidth) {
+	var width = (_Utils_cmp(pageWidth, $author$project$Helpers$maxPageWidth) > 0) ? $author$project$Helpers$maxPageWidth : pageWidth;
+	return 0.333 * width;
+};
 var $author$project$Main$exampleView = F2(
 	function (content, model) {
+		var height = $elm$core$String$fromFloat(
+			1.2 * $author$project$Helpers$toChartHeight(
+				$author$project$Helpers$toChartWidth(model.width)));
 		return A2(
 			$elm$html$Html$section,
 			_List_fromArray(
 				[
-					$elm$html$Html$Attributes$class('example')
+					$elm$html$Html$Attributes$class('example'),
+					A2($elm$html$Html$Attributes$style, 'height', height + 'px')
 				]),
 			content);
 	});
@@ -5348,24 +5365,40 @@ var $author$project$Main$introView = function (model) {
 				_List_Nil,
 				_List_fromArray(
 					[
-						$elm$html$Html$text('Easy to create and accessible charts in elm')
+						$elm$html$Html$text('Accessible and easy to create charts in elm')
 					]))
 			]));
 };
-var $author$project$Bar$codePrev = A2(
-	$elm$html$Html$div,
-	_List_fromArray(
-		[
-			$elm$html$Html$Attributes$class('example__code-prev')
-		]),
-	_List_Nil);
-var $author$project$Bar$dataPrev = A2(
-	$elm$html$Html$div,
-	_List_fromArray(
-		[
-			$elm$html$Html$Attributes$class('example__data-prev')
-		]),
-	_List_Nil);
+var $elm$html$Html$code = _VirtualDom_node('code');
+var $elm$html$Html$pre = _VirtualDom_node('pre');
+var $author$project$Helpers$codePrev = function (content) {
+	return A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$class('example__code-prev')
+			]),
+		_List_fromArray(
+			[
+				A2(
+				$elm$html$Html$code,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('terminal')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$pre,
+						_List_Nil,
+						_List_fromArray(
+							[
+								$elm$html$Html$text(content)
+							]))
+					]))
+			]));
+};
+var $author$project$Bar$codePrev = $author$project$Helpers$codePrev(' \ntype alias GroupData =\n    { x : String\n    , y : Float\n    , groupLabel : String\n    }\n\naccessor : Bar.Accessor Data.GroupData\naccessor =\n    Bar.Accessor (.groupLabel >> Just) .x .y\n\nverticalGrouped : Int -> Html msg\nverticalGrouped width =\n    Bar.init\n        { margin = Helpers.margin\n        , width = Helpers.toChartWidth width\n        , height =\n            width\n                |> Helpers.toChartWidth\n                |> Helpers.toChartHeight\n        }\n        |> Bar.withColorPalette colorScheme\n        |> Bar.withColumnTitle\n            (Bar.yColumnTitle valueFormatter)\n        |> Bar.withGroupedLayout\n        |> Bar.withYAxis yAxis\n        |> Bar.withXAxis xAxis\n        |> Bar.render ( Data.groupData, accessor )\n        ');
 var $elm$html$Html$a = _VirtualDom_node('a');
 var $elm$html$Html$h3 = _VirtualDom_node('h3');
 var $elm$html$Html$Attributes$href = function (url) {
@@ -5493,7 +5526,6 @@ var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$defaultMargin = {bottom:
 var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$Vertical = {$: 'Vertical'};
 var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$defaultOrientation = $data_viz_lab$elm_chart_builder$Chart$Internal$Type$Vertical;
 var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$defaultWidth = 600;
-var $elm$core$String$fromFloat = _String_fromNumber;
 var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$initialDomainBandStruct = {bandGroup: $elm$core$Maybe$Nothing, bandSingle: $elm$core$Maybe$Nothing, continuous: $elm$core$Maybe$Nothing};
 var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$initialDomainContinuousStruct = {x: $elm$core$Maybe$Nothing, y: $elm$core$Maybe$Nothing};
 var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$initialDomainTimeStruct = {x: $elm$core$Maybe$Nothing, y: $elm$core$Maybe$Nothing};
@@ -6835,7 +6867,6 @@ var $elm$core$List$head = function (list) {
 	}
 };
 var $elm$core$Basics$modBy = _Basics_modBy;
-var $elm$core$Basics$round = _Basics_round;
 var $avh4$elm_color$Color$toCssString = function (_v0) {
 	var r = _v0.a;
 	var g = _v0.b;
@@ -8755,8 +8786,6 @@ var $data_viz_lab$elm_chart_builder$Chart$Internal$Table$generate = function (da
 	}
 };
 var $elm$html$Html$figcaption = _VirtualDom_node('figcaption');
-var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
-var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
 var $data_viz_lab$elm_chart_builder$Chart$Internal$Helpers$invisibleFigcaption = function (content) {
 	return A2(
 		$elm$html$Html$figcaption,
@@ -10227,15 +10256,6 @@ var $data_viz_lab$elm_chart_builder$Chart$Bar$render = F2(
 				return $elm$html$Html$text('');
 		}
 	});
-var $author$project$Helpers$goldenRatio = 1.618;
-var $author$project$Helpers$toChartHeight = function (width) {
-	return $elm$core$Basics$round(width / $author$project$Helpers$goldenRatio);
-};
-var $author$project$Helpers$maxPageWidth = 1400;
-var $author$project$Helpers$toChartWidth = function (pageWidth) {
-	var width = (_Utils_cmp(pageWidth, $author$project$Helpers$maxPageWidth) > 0) ? $author$project$Helpers$maxPageWidth : pageWidth;
-	return (width / 4) | 0;
-};
 var $ggb$numeral_elm$Numeral$empty = F3(
 	function (lang, format_val, value) {
 		return {
@@ -11145,24 +11165,10 @@ var $author$project$Bar$view = function (_v0) {
 		[
 			$author$project$Bar$desc,
 			$author$project$Bar$verticalGrouped(width),
-			$author$project$Bar$dataPrev,
 			$author$project$Bar$codePrev
 		]);
 };
-var $author$project$Line$codePrev = A2(
-	$elm$html$Html$div,
-	_List_fromArray(
-		[
-			$elm$html$Html$Attributes$class('example__code-prev')
-		]),
-	_List_Nil);
-var $author$project$Line$dataPrev = A2(
-	$elm$html$Html$div,
-	_List_fromArray(
-		[
-			$elm$html$Html$Attributes$class('example__data-prev')
-		]),
-	_List_Nil);
+var $author$project$Line$codePrev = $author$project$Helpers$codePrev(' \ntype alias ContinuousData =\n    { x : Float\n    , y : Float\n    , groupLabel : String\n    }\n\naccessor : Line.Accessor Data.ContinuousData\naccessor =\n    Line.cont\n        (Line.AccessorCont\n            (.groupLabel >> Just)\n            .x\n            .y\n        )\n\nverticalGrouped : Int -> Html msg\nverticalGrouped width =\n    Line.init\n        { margin = Helpers.margin\n        , width = Helpers.toChartWidth width\n        , height =\n            width\n                |> Helpers.toChartWidth\n                |> Helpers.toChartHeight\n        }\n        |> Line.withColorPalette colorScheme\n        |> Line.withSymbols [ circle ]\n        |> Line.withLineStyle [ ( "stroke-width", "2" ) ]\n        |> Line.withGroupedLayout\n        |> Line.withYAxis yAxis\n        |> Line.withXAxisCont xAxis\n        |> Line.render ( Data.continuousData, accessor )\n        ');
 var $author$project$Line$desc = A2(
 	$elm$html$Html$div,
 	_List_fromArray(
@@ -11295,7 +11301,7 @@ var $data_viz_lab$elm_chart_builder$Chart$Symbol$withStyle = F2(
 	});
 var $author$project$Line$circle = A2(
 	$data_viz_lab$elm_chart_builder$Chart$Symbol$withSize,
-	8,
+	10,
 	A2(
 		$data_viz_lab$elm_chart_builder$Chart$Symbol$withStyle,
 		_List_fromArray(
@@ -17139,7 +17145,6 @@ var $author$project$Line$view = function (_v0) {
 		[
 			$author$project$Line$desc,
 			$author$project$Line$verticalGrouped(width),
-			$author$project$Line$dataPrev,
 			$author$project$Line$codePrev
 		]);
 };

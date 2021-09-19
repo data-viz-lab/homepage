@@ -46,10 +46,14 @@ verticalGrouped width =
     Bar.init
         { margin = Helpers.margin
         , width = Helpers.toChartWidth width
-        , height = width |> Helpers.toChartWidth |> Helpers.toChartHeight
+        , height =
+            width
+                |> Helpers.toChartWidth
+                |> Helpers.toChartHeight
         }
         |> Bar.withColorPalette colorScheme
-        |> Bar.withColumnTitle (Bar.yColumnTitle valueFormatter)
+        |> Bar.withColumnTitle
+            (Bar.yColumnTitle valueFormatter)
         |> Bar.withGroupedLayout
         |> Bar.withYAxis yAxis
         |> Bar.withXAxis xAxis
@@ -65,20 +69,43 @@ desc =
         ]
 
 
-dataPrev : Html msg
-dataPrev =
-    Html.div [ Attributes.class "example__data-prev" ] []
-
-
 codePrev : Html msg
 codePrev =
-    Html.div [ Attributes.class "example__code-prev" ] []
+    Helpers.codePrev
+        """ 
+type alias GroupData =
+    { x : String
+    , y : Float
+    , groupLabel : String
+    }
+
+accessor : Bar.Accessor Data.GroupData
+accessor =
+    Bar.Accessor (.groupLabel >> Just) .x .y
+
+verticalGrouped : Int -> Html msg
+verticalGrouped width =
+    Bar.init
+        { margin = Helpers.margin
+        , width = Helpers.toChartWidth width
+        , height =
+            width
+                |> Helpers.toChartWidth
+                |> Helpers.toChartHeight
+        }
+        |> Bar.withColorPalette colorScheme
+        |> Bar.withColumnTitle
+            (Bar.yColumnTitle valueFormatter)
+        |> Bar.withGroupedLayout
+        |> Bar.withYAxis yAxis
+        |> Bar.withXAxis xAxis
+        |> Bar.render ( Data.groupData, accessor )
+        """
 
 
 view : { a | width : Int } -> List (Html msg)
 view { width } =
     [ desc
     , verticalGrouped width
-    , dataPrev
     , codePrev
     ]
