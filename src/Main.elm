@@ -4,6 +4,7 @@ import Bar
 import Browser
 import Html exposing (Html)
 import Html.Attributes as Attributes
+import Line
 
 
 
@@ -38,6 +39,7 @@ view model =
     Html.div [ Attributes.class "content" ]
         [ introView model
         , exampleView (Bar.view model) model
+        , exampleView (Line.view model) model
         ]
 
 

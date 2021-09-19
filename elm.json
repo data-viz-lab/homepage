@@ -7,12 +7,12 @@
     "dependencies": {
         "direct": {
             "avh4/elm-color": "1.0.0",
-            "cuducos/elm-format-number": "9.0.0",
             "data-viz-lab/elm-chart-builder": "5.1.0",
             "elm/browser": "1.0.2",
             "elm/core": "1.0.5",
             "elm/html": "1.0.0",
-            "gampleman/elm-visualization": "2.3.0"
+            "gampleman/elm-visualization": "2.3.0",
+            "ggb/numeral-elm": "1.5.0"
         },
         "indirect": {
             "RalfNorthman/elm-lttb": "1.0.3",
@@ -40,13 +40,14 @@
             "ianmackenzie/elm-units-prefixed": "2.7.0",
             "justinmimbs/date": "3.2.1",
             "justinmimbs/time-extra": "1.1.0",
-            "myrho/elm-round": "1.0.4",
             "rtfeldman/elm-hex": "1.0.0",
             "ryannhg/date-format": "2.3.0"
         }
     },
     "test-dependencies": {
         "direct": {},
-        "indirect": {}
+        "indirect": {
+            "myrho/elm-round": "1.0.4"
+        }
     }
 }

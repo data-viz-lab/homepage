@@ -4392,6 +4392,107 @@ var _Bitwise_shiftRightZfBy = F2(function(offset, a)
 {
 	return a >>> offset;
 });
+
+
+// CREATE
+
+var _Regex_never = /.^/;
+
+var _Regex_fromStringWith = F2(function(options, string)
+{
+	var flags = 'g';
+	if (options.multiline) { flags += 'm'; }
+	if (options.caseInsensitive) { flags += 'i'; }
+
+	try
+	{
+		return $elm$core$Maybe$Just(new RegExp(string, flags));
+	}
+	catch(error)
+	{
+		return $elm$core$Maybe$Nothing;
+	}
+});
+
+
+// USE
+
+var _Regex_contains = F2(function(re, string)
+{
+	return string.match(re) !== null;
+});
+
+
+var _Regex_findAtMost = F3(function(n, re, str)
+{
+	var out = [];
+	var number = 0;
+	var string = str;
+	var lastIndex = re.lastIndex;
+	var prevLastIndex = -1;
+	var result;
+	while (number++ < n && (result = re.exec(string)))
+	{
+		if (prevLastIndex == re.lastIndex) break;
+		var i = result.length - 1;
+		var subs = new Array(i);
+		while (i > 0)
+		{
+			var submatch = result[i];
+			subs[--i] = submatch
+				? $elm$core$Maybe$Just(submatch)
+				: $elm$core$Maybe$Nothing;
+		}
+		out.push(A4($elm$regex$Regex$Match, result[0], result.index, number, _List_fromArray(subs)));
+		prevLastIndex = re.lastIndex;
+	}
+	re.lastIndex = lastIndex;
+	return _List_fromArray(out);
+});
+
+
+var _Regex_replaceAtMost = F4(function(n, re, replacer, string)
+{
+	var count = 0;
+	function jsReplacer(match)
+	{
+		if (count++ >= n)
+		{
+			return match;
+		}
+		var i = arguments.length - 3;
+		var submatches = new Array(i);
+		while (i > 0)
+		{
+			var submatch = arguments[i];
+			submatches[--i] = submatch
+				? $elm$core$Maybe$Just(submatch)
+				: $elm$core$Maybe$Nothing;
+		}
+		return replacer(A4($elm$regex$Regex$Match, match, arguments[arguments.length - 2], count, _List_fromArray(submatches)));
+	}
+	return string.replace(re, jsReplacer);
+});
+
+var _Regex_splitAtMost = F3(function(n, re, str)
+{
+	var string = str;
+	var out = [];
+	var start = re.lastIndex;
+	var restoreLastIndex = re.lastIndex;
+	while (n--)
+	{
+		var result = re.exec(string);
+		if (!result) break;
+		out.push(string.slice(start, result.index));
+		start = re.lastIndex;
+	}
+	out.push(string.slice(start));
+	re.lastIndex = restoreLastIndex;
+	return _List_fromArray(out);
+});
+
+var _Regex_infinity = Infinity;
 var $elm$core$List$cons = _List_cons;
 var $elm$core$Elm$JsArray$foldr = _JsArray_foldr;
 var $elm$core$Array$foldr = F3(
@@ -5352,7 +5453,7 @@ var $gampleman$elm_visualization$Scale$Color$tableau10 = _List_fromArray(
 		A3($avh4$elm_color$Color$rgb255, 186, 176, 171)
 	]);
 var $author$project$Bar$colorScheme = $gampleman$elm_visualization$Scale$Color$tableau10;
-var $author$project$Bar$data = _List_fromArray(
+var $author$project$Data$groupData = _List_fromArray(
 	[
 		{groupLabel: 'A', x: 'a', y: 1000},
 		{groupLabel: 'A', x: 'b', y: 1300},
@@ -5710,6 +5811,7 @@ var $data_viz_lab$elm_chart_builder$Chart$Bar$init = function (c) {
 		{height: c.height, margin: c.margin, width: c.width},
 		$data_viz_lab$elm_chart_builder$Chart$Internal$Type$defaultConfig);
 };
+var $author$project$Helpers$margin = {bottom: 20, left: 40, right: 20, top: 5};
 var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$DataBand = function (a) {
 	return {$: 'DataBand', a: a};
 };
@@ -10125,446 +10227,775 @@ var $data_viz_lab$elm_chart_builder$Chart$Bar$render = F2(
 				return $elm$html$Html$text('');
 		}
 	});
-var $author$project$Constants$goldenRatio = 1.618;
-var $author$project$Bar$toHeight = function (width) {
-	return $elm$core$Basics$round(width / $author$project$Constants$goldenRatio);
+var $author$project$Helpers$goldenRatio = 1.618;
+var $author$project$Helpers$toChartHeight = function (width) {
+	return $elm$core$Basics$round(width / $author$project$Helpers$goldenRatio);
 };
-var $author$project$Constants$maxPageWidth = 1400;
-var $author$project$Bar$toWidth = function (pageWidth) {
-	var width = (_Utils_cmp(pageWidth, $author$project$Constants$maxPageWidth) > 0) ? $author$project$Constants$maxPageWidth : pageWidth;
+var $author$project$Helpers$maxPageWidth = 1400;
+var $author$project$Helpers$toChartWidth = function (pageWidth) {
+	var width = (_Utils_cmp(pageWidth, $author$project$Helpers$maxPageWidth) > 0) ? $author$project$Helpers$maxPageWidth : pageWidth;
 	return (width / 4) | 0;
 };
-var $cuducos$elm_format_number$FormatNumber$Locales$Exact = function (a) {
-	return {$: 'Exact', a: a};
-};
-var $cuducos$elm_format_number$FormatNumber$Parser$FormattedNumber = F5(
-	function (original, integers, decimals, prefix, suffix) {
-		return {decimals: decimals, integers: integers, original: original, prefix: prefix, suffix: suffix};
+var $ggb$numeral_elm$Numeral$empty = F3(
+	function (lang, format_val, value) {
+		return {
+			abbreviation: '',
+			bytes: '',
+			customSuffix: '',
+			decimal: '',
+			format_value: format_val,
+			language: lang,
+			leadingZeros: 0,
+			minus: '',
+			neg: false,
+			negP: false,
+			optionalDecimal: false,
+			ordinal: '',
+			parens: _Utils_Tuple2('', ''),
+			plus: '',
+			precision: '',
+			signed: false,
+			strValue: $elm$core$String$fromFloat(value),
+			value: value,
+			word: ''
+		};
 	});
-var $cuducos$elm_format_number$FormatNumber$Parser$Negative = {$: 'Negative'};
-var $cuducos$elm_format_number$FormatNumber$Parser$Positive = {$: 'Positive'};
-var $cuducos$elm_format_number$FormatNumber$Parser$Zero = {$: 'Zero'};
-var $elm$core$List$singleton = function (value) {
-	return _List_fromArray(
-		[value]);
-};
-var $cuducos$elm_format_number$FormatNumber$Parser$classify = function (formatted) {
-	var onlyZeros = A2(
-		$elm$core$String$all,
-		function (_char) {
-			return _Utils_eq(
-				_char,
-				_Utils_chr('0'));
-		},
-		$elm$core$String$concat(
-			A2(
-				$elm$core$List$append,
-				formatted.integers,
-				$elm$core$List$singleton(formatted.decimals))));
-	return onlyZeros ? $cuducos$elm_format_number$FormatNumber$Parser$Zero : ((formatted.original < 0) ? $cuducos$elm_format_number$FormatNumber$Parser$Negative : $cuducos$elm_format_number$FormatNumber$Parser$Positive);
-};
-var $elm$core$String$filter = _String_filter;
-var $cuducos$elm_format_number$FormatNumber$Parser$addZerosToFit = F2(
-	function (desiredLength, value) {
-		var length = $elm$core$String$length(value);
-		var missing = (_Utils_cmp(length, desiredLength) < 0) ? $elm$core$Basics$abs(desiredLength - length) : 0;
-		return _Utils_ap(
-			value,
-			A2($elm$core$String$repeat, missing, '0'));
+var $elm$regex$Regex$Match = F4(
+	function (match, index, number, submatches) {
+		return {index: index, match: match, number: number, submatches: submatches};
 	});
-var $elm$core$String$dropRight = F2(
-	function (n, string) {
-		return (n < 1) ? string : A3($elm$core$String$slice, 0, -n, string);
-	});
-var $elm$core$String$right = F2(
-	function (n, string) {
-		return (n < 1) ? '' : A3(
-			$elm$core$String$slice,
-			-n,
-			$elm$core$String$length(string),
-			string);
-	});
-var $cuducos$elm_format_number$FormatNumber$Parser$removeZeros = function (decimals) {
-	return (A2($elm$core$String$right, 1, decimals) !== '0') ? decimals : $cuducos$elm_format_number$FormatNumber$Parser$removeZeros(
-		A2($elm$core$String$dropRight, 1, decimals));
+var $elm$regex$Regex$fromStringWith = _Regex_fromStringWith;
+var $elm$regex$Regex$fromString = function (string) {
+	return A2(
+		$elm$regex$Regex$fromStringWith,
+		{caseInsensitive: false, multiline: false},
+		string);
 };
-var $cuducos$elm_format_number$FormatNumber$Parser$getDecimals = F2(
-	function (locale, digits) {
-		var _v0 = locale.decimals;
-		switch (_v0.$) {
-			case 'Max':
-				return $cuducos$elm_format_number$FormatNumber$Parser$removeZeros(digits);
-			case 'Exact':
-				return digits;
-			default:
-				var min = _v0.a;
-				return A2($cuducos$elm_format_number$FormatNumber$Parser$addZerosToFit, min, digits);
-		}
-	});
-var $elm$core$String$foldr = _String_foldr;
-var $elm$core$String$toList = function (string) {
-	return A3($elm$core$String$foldr, $elm$core$List$cons, _List_Nil, string);
+var $elm$regex$Regex$never = _Regex_never;
+var $ggb$numeral_elm$Numeral$regex = function (str) {
+	return A2(
+		$elm$core$Maybe$withDefault,
+		$elm$regex$Regex$never,
+		$elm$regex$Regex$fromString(str));
 };
-var $myrho$elm_round$Round$addSign = F2(
-	function (signed, str) {
-		var isNotZero = A2(
-			$elm$core$List$any,
-			function (c) {
-				return (!_Utils_eq(
-					c,
-					_Utils_chr('0'))) && (!_Utils_eq(
-					c,
-					_Utils_chr('.')));
-			},
-			$elm$core$String$toList(str));
-		return _Utils_ap(
-			(signed && isNotZero) ? '-' : '',
-			str);
-	});
-var $elm$core$Char$fromCode = _Char_fromCode;
-var $myrho$elm_round$Round$increaseNum = function (_v0) {
-	var head = _v0.a;
-	var tail = _v0.b;
-	if (_Utils_eq(
-		head,
-		_Utils_chr('9'))) {
-		var _v1 = $elm$core$String$uncons(tail);
-		if (_v1.$ === 'Nothing') {
-			return '01';
-		} else {
-			var headtail = _v1.a;
-			return A2(
-				$elm$core$String$cons,
-				_Utils_chr('0'),
-				$myrho$elm_round$Round$increaseNum(headtail));
-		}
-	} else {
-		var c = $elm$core$Char$toCode(head);
-		return ((c >= 48) && (c < 57)) ? A2(
-			$elm$core$String$cons,
-			$elm$core$Char$fromCode(c + 1),
-			tail) : '0';
-	}
+var $elm$regex$Regex$replace = _Regex_replaceAtMost(_Regex_infinity);
+var $ggb$numeral_elm$Numeral$emptyReplace = function (str) {
+	return A2(
+		$elm$regex$Regex$replace,
+		$ggb$numeral_elm$Numeral$regex(str),
+		function (_v0) {
+			return '';
+		});
 };
-var $elm$core$Basics$isInfinite = _Basics_isInfinite;
-var $elm$core$String$reverse = _String_reverse;
-var $myrho$elm_round$Round$splitComma = function (str) {
-	var _v0 = A2($elm$core$String$split, '.', str);
-	if (_v0.b) {
-		if (_v0.b.b) {
-			var before = _v0.a;
-			var _v1 = _v0.b;
-			var after = _v1.a;
-			return _Utils_Tuple2(before, after);
-		} else {
-			var before = _v0.a;
-			return _Utils_Tuple2(before, '0');
-		}
-	} else {
-		return _Utils_Tuple2('0', '0');
-	}
+var $ggb$numeral_elm$Numeral$checkAbbreviation = function (numeral) {
+	var _v0 = numeral;
+	var language = _v0.language;
+	var format_value = _v0.format_value;
+	var value = _v0.value;
+	var abbrB = A2($elm$core$String$contains, 'aB', format_value);
+	var abbrK = A2($elm$core$String$contains, 'aK', format_value);
+	var abbrM = A2($elm$core$String$contains, 'aM', format_value);
+	var abbrT = A2($elm$core$String$contains, 'aT', format_value);
+	var abbrForce = !(abbrK || (abbrM || (abbrB || abbrT)));
+	var absValue = $elm$core$Basics$abs(value);
+	var _v1 = A2($elm$core$String$contains, ' a', format_value) ? _Utils_Tuple2(
+		' ',
+		A2($ggb$numeral_elm$Numeral$emptyReplace, ' a', format_value)) : _Utils_Tuple2(
+		'',
+		A2($ggb$numeral_elm$Numeral$emptyReplace, 'a', format_value));
+	var abbr = _v1.a;
+	var format1 = _v1.b;
+	return (!A2($elm$core$String$contains, 'a', format_value)) ? numeral : ((((_Utils_cmp(
+		absValue,
+		A2($elm$core$Basics$pow, 10, 12)) > -1) && abbrForce) || abbrT) ? _Utils_update(
+		numeral,
+		{
+			abbreviation: _Utils_ap(abbr, language.abbreviations.trillion),
+			format_value: format1,
+			value: value / A2($elm$core$Basics$pow, 10, 12)
+		}) : ((((_Utils_cmp(
+		absValue,
+		A2($elm$core$Basics$pow, 10, 12)) < 0) && ((_Utils_cmp(
+		absValue,
+		A2($elm$core$Basics$pow, 10, 9)) > -1) && abbrForce)) || abbrB) ? _Utils_update(
+		numeral,
+		{
+			abbreviation: _Utils_ap(abbr, language.abbreviations.billion),
+			format_value: format1,
+			value: value / A2($elm$core$Basics$pow, 10, 9)
+		}) : ((((_Utils_cmp(
+		absValue,
+		A2($elm$core$Basics$pow, 10, 9)) < 0) && ((_Utils_cmp(
+		absValue,
+		A2($elm$core$Basics$pow, 10, 6)) > -1) && abbrForce)) || abbrM) ? _Utils_update(
+		numeral,
+		{
+			abbreviation: _Utils_ap(abbr, language.abbreviations.million),
+			format_value: format1,
+			value: value / A2($elm$core$Basics$pow, 10, 6)
+		}) : ((((_Utils_cmp(
+		absValue,
+		A2($elm$core$Basics$pow, 10, 6)) < 0) && ((_Utils_cmp(
+		absValue,
+		A2($elm$core$Basics$pow, 10, 3)) > -1) && abbrForce)) || abbrK) ? _Utils_update(
+		numeral,
+		{
+			abbreviation: _Utils_ap(abbr, language.abbreviations.thousand),
+			format_value: format1,
+			value: value / A2($elm$core$Basics$pow, 10, 3)
+		}) : _Utils_update(
+		numeral,
+		{abbreviation: abbr, format_value: format1})))));
 };
-var $elm$core$Tuple$mapFirst = F2(
-	function (func, _v0) {
-		var x = _v0.a;
-		var y = _v0.b;
-		return _Utils_Tuple2(
-			func(x),
-			y);
-	});
-var $myrho$elm_round$Round$toDecimal = function (fl) {
-	var _v0 = A2(
-		$elm$core$String$split,
-		'e',
-		$elm$core$String$fromFloat(
-			$elm$core$Basics$abs(fl)));
-	if (_v0.b) {
-		if (_v0.b.b) {
-			var num = _v0.a;
-			var _v1 = _v0.b;
-			var exp = _v1.a;
-			var e = A2(
-				$elm$core$Maybe$withDefault,
-				0,
-				$elm$core$String$toInt(
-					A2($elm$core$String$startsWith, '+', exp) ? A2($elm$core$String$dropLeft, 1, exp) : exp));
-			var _v2 = $myrho$elm_round$Round$splitComma(num);
-			var before = _v2.a;
-			var after = _v2.b;
-			var total = _Utils_ap(before, after);
-			var zeroed = (e < 0) ? A2(
-				$elm$core$Maybe$withDefault,
-				'0',
-				A2(
-					$elm$core$Maybe$map,
-					function (_v3) {
-						var a = _v3.a;
-						var b = _v3.b;
-						return a + ('.' + b);
-					},
-					A2(
-						$elm$core$Maybe$map,
-						$elm$core$Tuple$mapFirst($elm$core$String$fromChar),
-						$elm$core$String$uncons(
-							_Utils_ap(
-								A2(
-									$elm$core$String$repeat,
-									$elm$core$Basics$abs(e),
-									'0'),
-								total))))) : A3(
-				$elm$core$String$padRight,
-				e + 1,
-				_Utils_chr('0'),
-				total);
-			return _Utils_ap(
-				(fl < 0) ? '-' : '',
-				zeroed);
-		} else {
-			var num = _v0.a;
-			return _Utils_ap(
-				(fl < 0) ? '-' : '',
-				num);
-		}
-	} else {
-		return '';
-	}
-};
-var $myrho$elm_round$Round$roundFun = F3(
-	function (functor, s, fl) {
-		if ($elm$core$Basics$isInfinite(fl) || $elm$core$Basics$isNaN(fl)) {
-			return $elm$core$String$fromFloat(fl);
-		} else {
-			var signed = fl < 0;
-			var _v0 = $myrho$elm_round$Round$splitComma(
-				$myrho$elm_round$Round$toDecimal(
-					$elm$core$Basics$abs(fl)));
-			var before = _v0.a;
-			var after = _v0.b;
-			var r = $elm$core$String$length(before) + s;
-			var normalized = _Utils_ap(
-				A2($elm$core$String$repeat, (-r) + 1, '0'),
-				A3(
-					$elm$core$String$padRight,
-					r,
-					_Utils_chr('0'),
-					_Utils_ap(before, after)));
-			var totalLen = $elm$core$String$length(normalized);
-			var roundDigitIndex = A2($elm$core$Basics$max, 1, r);
-			var increase = A2(
-				functor,
-				signed,
-				A3($elm$core$String$slice, roundDigitIndex, totalLen, normalized));
-			var remains = A3($elm$core$String$slice, 0, roundDigitIndex, normalized);
-			var num = increase ? $elm$core$String$reverse(
-				A2(
-					$elm$core$Maybe$withDefault,
-					'1',
-					A2(
-						$elm$core$Maybe$map,
-						$myrho$elm_round$Round$increaseNum,
-						$elm$core$String$uncons(
-							$elm$core$String$reverse(remains))))) : remains;
-			var numLen = $elm$core$String$length(num);
-			var numZeroed = (num === '0') ? num : ((s <= 0) ? _Utils_ap(
-				num,
-				A2(
-					$elm$core$String$repeat,
-					$elm$core$Basics$abs(s),
-					'0')) : ((_Utils_cmp(
-				s,
-				$elm$core$String$length(after)) < 0) ? (A3($elm$core$String$slice, 0, numLen - s, num) + ('.' + A3($elm$core$String$slice, numLen - s, numLen, num))) : _Utils_ap(
-				before + '.',
-				A3(
-					$elm$core$String$padRight,
-					s,
-					_Utils_chr('0'),
-					after))));
-			return A2($myrho$elm_round$Round$addSign, signed, numZeroed);
-		}
-	});
-var $myrho$elm_round$Round$round = $myrho$elm_round$Round$roundFun(
-	F2(
-		function (signed, str) {
-			var _v0 = $elm$core$String$uncons(str);
-			if (_v0.$ === 'Nothing') {
-				return false;
+var $elm$core$Bitwise$shiftRightZfBy = _Bitwise_shiftRightZfBy;
+var $elm$core$Array$bitMask = 4294967295 >>> (32 - $elm$core$Array$shiftStep);
+var $elm$core$Elm$JsArray$unsafeGet = _JsArray_unsafeGet;
+var $elm$core$Array$getHelp = F3(
+	function (shift, index, tree) {
+		getHelp:
+		while (true) {
+			var pos = $elm$core$Array$bitMask & (index >>> shift);
+			var _v0 = A2($elm$core$Elm$JsArray$unsafeGet, pos, tree);
+			if (_v0.$ === 'SubTree') {
+				var subTree = _v0.a;
+				var $temp$shift = shift - $elm$core$Array$shiftStep,
+					$temp$index = index,
+					$temp$tree = subTree;
+				shift = $temp$shift;
+				index = $temp$index;
+				tree = $temp$tree;
+				continue getHelp;
 			} else {
-				if ('5' === _v0.a.a.valueOf()) {
-					if (_v0.a.b === '') {
-						var _v1 = _v0.a;
-						return !signed;
-					} else {
-						var _v2 = _v0.a;
-						return true;
-					}
+				var values = _v0.a;
+				return A2($elm$core$Elm$JsArray$unsafeGet, $elm$core$Array$bitMask & index, values);
+			}
+		}
+	});
+var $elm$core$Bitwise$shiftLeftBy = _Bitwise_shiftLeftBy;
+var $elm$core$Array$tailIndex = function (len) {
+	return (len >>> 5) << 5;
+};
+var $elm$core$Array$get = F2(
+	function (index, _v0) {
+		var len = _v0.a;
+		var startShift = _v0.b;
+		var tree = _v0.c;
+		var tail = _v0.d;
+		return ((index < 0) || (_Utils_cmp(index, len) > -1)) ? $elm$core$Maybe$Nothing : ((_Utils_cmp(
+			index,
+			$elm$core$Array$tailIndex(len)) > -1) ? $elm$core$Maybe$Just(
+			A2($elm$core$Elm$JsArray$unsafeGet, $elm$core$Array$bitMask & index, tail)) : $elm$core$Maybe$Just(
+			A3($elm$core$Array$getHelp, startShift, index, tree)));
+	});
+var $elm$core$Array$fromListHelp = F3(
+	function (list, nodeList, nodeListSize) {
+		fromListHelp:
+		while (true) {
+			var _v0 = A2($elm$core$Elm$JsArray$initializeFromList, $elm$core$Array$branchFactor, list);
+			var jsArray = _v0.a;
+			var remainingItems = _v0.b;
+			if (_Utils_cmp(
+				$elm$core$Elm$JsArray$length(jsArray),
+				$elm$core$Array$branchFactor) < 0) {
+				return A2(
+					$elm$core$Array$builderToArray,
+					true,
+					{nodeList: nodeList, nodeListSize: nodeListSize, tail: jsArray});
+			} else {
+				var $temp$list = remainingItems,
+					$temp$nodeList = A2(
+					$elm$core$List$cons,
+					$elm$core$Array$Leaf(jsArray),
+					nodeList),
+					$temp$nodeListSize = nodeListSize + 1;
+				list = $temp$list;
+				nodeList = $temp$nodeList;
+				nodeListSize = $temp$nodeListSize;
+				continue fromListHelp;
+			}
+		}
+	});
+var $elm$core$Array$fromList = function (list) {
+	if (!list.b) {
+		return $elm$core$Array$empty;
+	} else {
+		return A3($elm$core$Array$fromListHelp, list, _List_Nil, 0);
+	}
+};
+var $ggb$numeral_elm$Numeral$suffixes = $elm$core$Array$fromList(
+	_List_fromArray(
+		['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']));
+var $ggb$numeral_elm$Numeral$checkByte = function (numeral) {
+	var _v0 = numeral;
+	var format_value = _v0.format_value;
+	var value = _v0.value;
+	var suffixIndex1 = function (power) {
+		suffixIndex1:
+		while (true) {
+			var minValue = A2($elm$core$Basics$pow, 1024, power);
+			var maxValue = A2($elm$core$Basics$pow, 1024, power + 1);
+			if ((_Utils_cmp(value, minValue) > -1) && (_Utils_cmp(value, maxValue) < 0)) {
+				return (minValue > 0) ? _Utils_Tuple2(power, value / minValue) : _Utils_Tuple2(power, value);
+			} else {
+				if (power < 10) {
+					var $temp$power = power + 1;
+					power = $temp$power;
+					continue suffixIndex1;
 				} else {
-					var _v3 = _v0.a;
-					var _int = _v3.a;
-					return function (i) {
-						return ((i > 53) && signed) || ((i >= 53) && (!signed));
-					}(
-						$elm$core$Char$toCode(_int));
+					return _Utils_Tuple2(-1, value);
 				}
 			}
-		}));
-var $elm$core$List$tail = function (list) {
-	if (list.b) {
-		var x = list.a;
-		var xs = list.b;
-		return $elm$core$Maybe$Just(xs);
+		}
+	};
+	var _v1 = suffixIndex1(0);
+	var suffixIndex = _v1.a;
+	var value1 = _v1.b;
+	var suffix = A2(
+		$elm$core$Maybe$withDefault,
+		'',
+		A2(
+			$elm$core$Array$get,
+			$elm$core$Basics$round(suffixIndex),
+			$ggb$numeral_elm$Numeral$suffixes));
+	var _v2 = A2($elm$core$String$contains, ' b', format_value) ? _Utils_Tuple2(
+		' ',
+		A2($ggb$numeral_elm$Numeral$emptyReplace, ' b', format_value)) : _Utils_Tuple2(
+		'',
+		A2($ggb$numeral_elm$Numeral$emptyReplace, 'b', format_value));
+	var bytes = _v2.a;
+	var format1 = _v2.b;
+	return A2($elm$core$String$contains, 'b', format_value) ? _Utils_update(
+		numeral,
+		{
+			bytes: _Utils_ap(bytes, suffix),
+			format_value: format1,
+			value: value1
+		}) : numeral;
+};
+var $elm$regex$Regex$find = _Regex_findAtMost(_Regex_infinity);
+var $elm$core$String$replace = F3(
+	function (before, after, string) {
+		return A2(
+			$elm$core$String$join,
+			after,
+			A2($elm$core$String$split, before, string));
+	});
+var $ggb$numeral_elm$Numeral$checkForCustomSuffix = function (numeral) {
+	var hasSuffix = $elm$core$List$head(
+		A2(
+			$elm$regex$Regex$find,
+			$ggb$numeral_elm$Numeral$regex('\\[\\D+\\]$'),
+			numeral.format_value));
+	if (hasSuffix.$ === 'Nothing') {
+		return numeral;
 	} else {
-		return $elm$core$Maybe$Nothing;
+		var match = hasSuffix.a.match;
+		return _Utils_update(
+			numeral,
+			{
+				customSuffix: A3(
+					$elm$regex$Regex$replace,
+					$ggb$numeral_elm$Numeral$regex('\\[|\\]'),
+					function (_v1) {
+						return '';
+					},
+					match),
+				format_value: A3($elm$core$String$replace, match, '', numeral.format_value)
+			});
 	}
 };
-var $cuducos$elm_format_number$FormatNumber$Parser$splitInParts = F2(
-	function (locale, value) {
-		var toString = function () {
-			var _v1 = locale.decimals;
-			switch (_v1.$) {
-				case 'Max':
-					var max = _v1.a;
-					return $myrho$elm_round$Round$round(max);
-				case 'Min':
-					return $elm$core$String$fromFloat;
-				default:
-					var exact = _v1.a;
-					return $myrho$elm_round$Round$round(exact);
-			}
-		}();
-		var asList = A2(
-			$elm$core$String$split,
-			'.',
-			toString(value));
-		var decimals = function () {
-			var _v0 = $elm$core$List$tail(asList);
-			if (_v0.$ === 'Just') {
-				var values = _v0.a;
-				return A2(
-					$elm$core$Maybe$withDefault,
-					'',
-					$elm$core$List$head(values));
-			} else {
-				return '';
-			}
-		}();
-		var integers = A2(
+var $ggb$numeral_elm$Numeral$checkIfNegative = function (numeral) {
+	return A2($elm$core$String$contains, '-', numeral.word) ? _Utils_update(
+		numeral,
+		{
+			neg: true,
+			word: A3(
+				$elm$core$String$slice,
+				1,
+				$elm$core$String$length(numeral.word),
+				numeral.word)
+		}) : numeral;
+};
+var $ggb$numeral_elm$Numeral$checkOptionalDec = function (numeral) {
+	return A2($elm$core$String$contains, '[.]', numeral.format_value) ? _Utils_update(
+		numeral,
+		{
+			format_value: A3(
+				$elm$regex$Regex$replace,
+				$ggb$numeral_elm$Numeral$regex('\\[\\.\\]'),
+				function (_v0) {
+					return '.';
+				},
+				numeral.format_value),
+			optionalDecimal: true
+		}) : numeral;
+};
+var $ggb$numeral_elm$Numeral$checkOrdinal = function (numeral) {
+	var _v0 = numeral;
+	var language = _v0.language;
+	var format_value = _v0.format_value;
+	var value = _v0.value;
+	var _v1 = A2($elm$core$String$contains, ' o', format_value) ? _Utils_Tuple2(
+		' ',
+		A2($ggb$numeral_elm$Numeral$emptyReplace, ' o', format_value)) : _Utils_Tuple2(
+		'',
+		A2($ggb$numeral_elm$Numeral$emptyReplace, 'o', format_value));
+	var ord = _v1.a;
+	var format1 = _v1.b;
+	return A2($elm$core$String$contains, 'o', format_value) ? _Utils_update(
+		numeral,
+		{
+			format_value: format1,
+			ordinal: _Utils_ap(
+				ord,
+				numeral.language.ordinal(value))
+		}) : numeral;
+};
+var $ggb$numeral_elm$Numeral$checkParensAndSign = function (numeral) {
+	return A2($elm$core$String$contains, '(', numeral.format_value) ? _Utils_update(
+		numeral,
+		{
+			format_value: A3($elm$core$String$slice, 1, -1, numeral.format_value),
+			negP: true,
+			signed: false
+		}) : (A2($elm$core$String$contains, '+', numeral.format_value) ? _Utils_update(
+		numeral,
+		{
+			format_value: A2($ggb$numeral_elm$Numeral$emptyReplace, '\\+', numeral.format_value),
+			negP: false,
+			signed: true
+		}) : numeral);
+};
+var $ggb$numeral_elm$Numeral$addThousandsDelimiter = F2(
+	function (lang, word) {
+		return A3(
+			$elm$regex$Regex$replace,
+			$ggb$numeral_elm$Numeral$regex('(\\d)(?=(\\d{3})+(?!\\d))'),
+			function (_v0) {
+				var match = _v0.match;
+				return _Utils_ap(match, lang.delimiters.thousands);
+			},
+			word);
+	});
+var $ggb$numeral_elm$Numeral$checkThousandsDelimiter = function (numeral) {
+	return A2($elm$core$String$contains, ',', numeral.format_value) ? _Utils_update(
+		numeral,
+		{
+			word: A2($ggb$numeral_elm$Numeral$addThousandsDelimiter, numeral.language, numeral.word)
+		}) : numeral;
+};
+var $ggb$numeral_elm$Numeral$createFinalString = function (_v0) {
+	var parens = _v0.parens;
+	var minus = _v0.minus;
+	var plus = _v0.plus;
+	var word = _v0.word;
+	var decimal = _v0.decimal;
+	var ordinal = _v0.ordinal;
+	var abbreviation = _v0.abbreviation;
+	var bytes = _v0.bytes;
+	var customSuffix = _v0.customSuffix;
+	return A2(
+		$elm$core$String$join,
+		'',
+		_List_fromArray(
+			[parens.a, minus, plus, word, decimal, ordinal, abbreviation, bytes, customSuffix, parens.b]));
+};
+var $ggb$numeral_elm$Numeral$indexOf = F2(
+	function (part, word) {
+		return A2(
+			$elm$core$Maybe$withDefault,
+			-1,
+			$elm$core$List$head(
+				A2($elm$core$String$indexes, part, word)));
+	});
+var $ggb$numeral_elm$Numeral$createFinalWord = function (numeral) {
+	return (!A2($ggb$numeral_elm$Numeral$indexOf, '.', numeral.format_value)) ? _Utils_update(
+		numeral,
+		{word: ''}) : numeral;
+};
+var $ggb$numeral_elm$Numeral$createParens = function (numeral) {
+	return (numeral.negP && numeral.neg) ? _Utils_update(
+		numeral,
+		{
+			parens: _Utils_Tuple2('(', ')')
+		}) : numeral;
+};
+var $ggb$numeral_elm$Numeral$getPrecision = function (numeral) {
+	var splitted = A2($elm$core$String$split, '.', numeral.format_value);
+	var precision = A2(
+		$elm$core$Maybe$withDefault,
+		'',
+		$elm$core$List$head(
+			A2($elm$core$List$drop, 1, splitted)));
+	var leadingZeros = $elm$core$String$length(
+		A2(
 			$elm$core$Maybe$withDefault,
 			'',
-			$elm$core$List$head(asList));
-		return _Utils_Tuple2(integers, decimals);
-	});
-var $cuducos$elm_format_number$FormatNumber$Parser$splitByIndian = function (integers) {
-	var thousand = ($elm$core$String$length(integers) > 3) ? A2($elm$core$String$right, 3, integers) : integers;
-	var reversedSplitHundreds = function (value) {
-		return ($elm$core$String$length(value) > 2) ? A2(
-			$elm$core$List$cons,
-			A2($elm$core$String$right, 2, value),
-			reversedSplitHundreds(
-				A2($elm$core$String$dropRight, 2, value))) : ((!$elm$core$String$length(value)) ? _List_Nil : _List_fromArray(
-			[value]));
-	};
-	return $elm$core$List$reverse(
+			$elm$core$List$head(splitted)));
+	var leadingZeros_ = A2($elm$core$String$contains, ',', numeral.format_value) ? 0 : leadingZeros;
+	return _Utils_update(
+		numeral,
+		{leadingZeros: leadingZeros_, precision: precision});
+};
+var $ggb$numeral_elm$Numeral$hasMinus = function (numeral) {
+	return ((!numeral.negP) && numeral.neg) ? _Utils_update(
+		numeral,
+		{minus: '-'}) : numeral;
+};
+var $ggb$numeral_elm$Numeral$hasPlus = function (numeral) {
+	return ((!numeral.neg) && numeral.signed) ? _Utils_update(
+		numeral,
+		{plus: '+'}) : numeral;
+};
+var $ggb$numeral_elm$Numeral$processDecimal = function (numeral) {
+	var d = numeral.decimal;
+	var result = A2(
+		$elm$core$Maybe$withDefault,
+		1,
+		$elm$core$String$toInt(
+			A3(
+				$elm$core$String$slice,
+				1,
+				$elm$core$String$length(d),
+				d)));
+	return (numeral.optionalDecimal && (!result)) ? _Utils_update(
+		numeral,
+		{decimal: ''}) : _Utils_update(
+		numeral,
+		{decimal: d});
+};
+var $ggb$numeral_elm$Numeral$processLeadingZeros = function (numeral) {
+	var w = $elm$core$String$length(
 		A2(
-			$elm$core$List$cons,
-			thousand,
-			reversedSplitHundreds(
-				A2($elm$core$String$dropRight, 3, integers))));
-};
-var $cuducos$elm_format_number$FormatNumber$Parser$splitByWestern = function (integers) {
-	var reversedSplitThousands = function (value) {
-		return ($elm$core$String$length(value) > 3) ? A2(
-			$elm$core$List$cons,
-			A2($elm$core$String$right, 3, value),
-			reversedSplitThousands(
-				A2($elm$core$String$dropRight, 3, value))) : _List_fromArray(
-			[value]);
-	};
-	return $elm$core$List$reverse(
-		reversedSplitThousands(integers));
-};
-var $cuducos$elm_format_number$FormatNumber$Parser$splitIntegers = F2(
-	function (system, integers) {
-		if (system.$ === 'Western') {
-			return $cuducos$elm_format_number$FormatNumber$Parser$splitByWestern(
-				A2($elm$core$String$filter, $elm$core$Char$isDigit, integers));
-		} else {
-			return $cuducos$elm_format_number$FormatNumber$Parser$splitByIndian(
-				A2($elm$core$String$filter, $elm$core$Char$isDigit, integers));
-		}
-	});
-var $cuducos$elm_format_number$FormatNumber$Parser$parse = F2(
-	function (locale, original) {
-		var parts = A2($cuducos$elm_format_number$FormatNumber$Parser$splitInParts, locale, original);
-		var integers = A2(
-			$cuducos$elm_format_number$FormatNumber$Parser$splitIntegers,
-			locale.system,
-			A2($elm$core$String$filter, $elm$core$Char$isDigit, parts.a));
-		var decimals = A2($cuducos$elm_format_number$FormatNumber$Parser$getDecimals, locale, parts.b);
-		var partial = A5($cuducos$elm_format_number$FormatNumber$Parser$FormattedNumber, original, integers, decimals, '', '');
-		var _v0 = $cuducos$elm_format_number$FormatNumber$Parser$classify(partial);
-		switch (_v0.$) {
-			case 'Negative':
-				return _Utils_update(
-					partial,
-					{prefix: locale.negativePrefix, suffix: locale.negativeSuffix});
-			case 'Positive':
-				return _Utils_update(
-					partial,
-					{prefix: locale.positivePrefix, suffix: locale.positiveSuffix});
-			default:
-				return _Utils_update(
-					partial,
-					{prefix: locale.zeroPrefix, suffix: locale.zeroSuffix});
-		}
-	});
-var $cuducos$elm_format_number$FormatNumber$Stringfy$formatDecimals = F2(
-	function (locale, decimals) {
-		return (decimals === '') ? '' : _Utils_ap(locale.decimalSeparator, decimals);
-	});
-var $cuducos$elm_format_number$FormatNumber$Stringfy$stringfy = F2(
-	function (locale, formatted) {
-		var stringfyDecimals = $cuducos$elm_format_number$FormatNumber$Stringfy$formatDecimals(locale);
-		var integers = A2($elm$core$String$join, locale.thousandSeparator, formatted.integers);
-		var decimals = stringfyDecimals(formatted.decimals);
-		return $elm$core$String$concat(
-			_List_fromArray(
-				[formatted.prefix, integers, decimals, formatted.suffix]));
-	});
-var $cuducos$elm_format_number$FormatNumber$format = F2(
-	function (locale, number_) {
-		return A2(
-			$cuducos$elm_format_number$FormatNumber$Stringfy$stringfy,
-			locale,
-			A2($cuducos$elm_format_number$FormatNumber$Parser$parse, locale, number_));
-	});
-var $cuducos$elm_format_number$FormatNumber$Locales$Min = function (a) {
-	return {$: 'Min', a: a};
-};
-var $cuducos$elm_format_number$FormatNumber$Locales$Western = {$: 'Western'};
-var $cuducos$elm_format_number$FormatNumber$Locales$base = {
-	decimalSeparator: '.',
-	decimals: $cuducos$elm_format_number$FormatNumber$Locales$Min(0),
-	negativePrefix: '−',
-	negativeSuffix: '',
-	positivePrefix: '',
-	positiveSuffix: '',
-	system: $cuducos$elm_format_number$FormatNumber$Locales$Western,
-	thousandSeparator: '',
-	zeroPrefix: '',
-	zeroSuffix: ''
-};
-var $cuducos$elm_format_number$FormatNumber$Locales$usLocale = _Utils_update(
-	$cuducos$elm_format_number$FormatNumber$Locales$base,
-	{
-		decimals: $cuducos$elm_format_number$FormatNumber$Locales$Exact(2),
-		thousandSeparator: ','
-	});
-var $author$project$Bar$valueFormatter = $cuducos$elm_format_number$FormatNumber$format(
-	_Utils_update(
-		$cuducos$elm_format_number$FormatNumber$Locales$usLocale,
+			$elm$core$Maybe$withDefault,
+			'',
+			$elm$core$List$head(
+				A2($elm$core$String$split, '.', numeral.word))));
+	var n = numeral.leadingZeros - w;
+	var prefix = A2($elm$core$String$repeat, n, '0');
+	return _Utils_update(
+		numeral,
 		{
-			decimals: $cuducos$elm_format_number$FormatNumber$Locales$Exact(0)
-		}));
+			word: _Utils_ap(prefix, numeral.word)
+		});
+};
+var $ggb$numeral_elm$Numeral$flip = F3(
+	function (f, x, y) {
+		return A2(f, y, x);
+	});
+var $ggb$numeral_elm$Numeral$toFixed = F2(
+	function (precision, value) {
+		var power = A2($elm$core$Basics$pow, 10, precision);
+		var pad = function (num) {
+			_v0$2:
+			while (true) {
+				if (num.b) {
+					if (num.b.b) {
+						if (!num.b.b.b) {
+							var x = num.a;
+							var _v1 = num.b;
+							var y = _v1.a;
+							return _List_fromArray(
+								[
+									x,
+									A3(
+									$elm$core$String$padRight,
+									precision,
+									_Utils_chr('0'),
+									y)
+								]);
+						} else {
+							break _v0$2;
+						}
+					} else {
+						var val = num.a;
+						return _List_fromArray(
+							[
+								val,
+								A3(
+								$elm$core$String$padRight,
+								precision,
+								_Utils_chr('0'),
+								'')
+							]);
+					}
+				} else {
+					break _v0$2;
+				}
+			}
+			var val = num;
+			return val;
+		};
+		return A2(
+			$elm$core$String$join,
+			'.',
+			pad(
+				A2(
+					$elm$core$String$split,
+					'.',
+					$elm$core$String$fromFloat(
+						$elm$core$Basics$round((value * power) + 0.01) / power))));
+	});
+var $ggb$numeral_elm$Numeral$toFixedWithOptional = F2(
+	function (prs, value) {
+		_v0$2:
+		while (true) {
+			if (prs.b) {
+				if (prs.b.b) {
+					if (!prs.b.b.b) {
+						var x = prs.a;
+						var _v1 = prs.b;
+						var y = _v1.a;
+						return A2(
+							$ggb$numeral_elm$Numeral$emptyReplace,
+							'0{1,' + ($elm$core$String$fromInt(y) + '}$'),
+							A2($ggb$numeral_elm$Numeral$toFixed, x + y, value));
+					} else {
+						break _v0$2;
+					}
+				} else {
+					var x = prs.a;
+					return A2($ggb$numeral_elm$Numeral$toFixed, x, value);
+				}
+			} else {
+				break _v0$2;
+			}
+		}
+		return $elm$core$String$fromFloat(value);
+	});
+var $ggb$numeral_elm$Numeral$processPrecision = function (numeral) {
+	var _v0 = numeral;
+	var language = _v0.language;
+	var format_value = _v0.format_value;
+	var value = _v0.value;
+	var precision = _v0.precision;
+	var fst = A2($elm$core$String$contains, '[', precision) ? A2(
+		$ggb$numeral_elm$Numeral$flip($ggb$numeral_elm$Numeral$toFixedWithOptional),
+		value,
+		A2(
+			$elm$core$List$take,
+			2,
+			A2(
+				$elm$core$List$map,
+				$elm$core$String$length,
+				A2(
+					$elm$core$String$split,
+					'[',
+					A2($ggb$numeral_elm$Numeral$emptyReplace, ']', precision))))) : A2(
+		$ggb$numeral_elm$Numeral$toFixed,
+		$elm$core$String$length(precision),
+		value);
+	var snd = function () {
+		var _v1 = A2($elm$core$String$split, '.', fst);
+		if ((_v1.b && _v1.b.b) && (!_v1.b.b.b)) {
+			var x = _v1.a;
+			var _v2 = _v1.b;
+			var y = _v2.a;
+			return ($elm$core$String$length(y) > 0) ? _Utils_ap(language.delimiters.decimal, y) : '';
+		} else {
+			return '';
+		}
+	}();
+	var w = A2(
+		$elm$core$Maybe$withDefault,
+		'',
+		$elm$core$List$head(
+			A2($elm$core$String$split, '.', fst)));
+	return (precision === '') ? _Utils_update(
+		numeral,
+		{decimal: '', word: w}) : _Utils_update(
+		numeral,
+		{decimal: snd, word: w});
+};
+var $ggb$numeral_elm$Numeral$processWord = function (numeral) {
+	var w = A2(
+		$elm$core$Maybe$withDefault,
+		'',
+		$elm$core$List$head(
+			A2($elm$core$String$split, '.', numeral.strValue)));
+	return _Utils_update(
+		numeral,
+		{word: w});
+};
+var $ggb$numeral_elm$Numeral$updateStringValue = function (numeral) {
+	return _Utils_update(
+		numeral,
+		{
+			strValue: $elm$core$String$fromFloat(numeral.value)
+		});
+};
+var $ggb$numeral_elm$Numeral$formatNumber = function (numeral) {
+	return $ggb$numeral_elm$Numeral$createFinalString(
+		$ggb$numeral_elm$Numeral$hasPlus(
+			$ggb$numeral_elm$Numeral$hasMinus(
+				$ggb$numeral_elm$Numeral$createParens(
+					$ggb$numeral_elm$Numeral$createFinalWord(
+						$ggb$numeral_elm$Numeral$checkIfNegative(
+							$ggb$numeral_elm$Numeral$checkThousandsDelimiter(
+								$ggb$numeral_elm$Numeral$processDecimal(
+									$ggb$numeral_elm$Numeral$processLeadingZeros(
+										$ggb$numeral_elm$Numeral$processPrecision(
+											$ggb$numeral_elm$Numeral$getPrecision(
+												$ggb$numeral_elm$Numeral$processWord(
+													$ggb$numeral_elm$Numeral$updateStringValue(
+														$ggb$numeral_elm$Numeral$checkOptionalDec(
+															$ggb$numeral_elm$Numeral$checkOrdinal(
+																$ggb$numeral_elm$Numeral$checkByte(
+																	$ggb$numeral_elm$Numeral$checkAbbreviation(
+																		$ggb$numeral_elm$Numeral$checkForCustomSuffix(
+																			$ggb$numeral_elm$Numeral$checkParensAndSign(numeral)))))))))))))))))));
+};
+var $ggb$numeral_elm$Numeral$formatWithoutCurrency = function (lformat) {
+	return A2($elm$core$String$contains, ' $', lformat) ? _Utils_Tuple2(
+		' ',
+		A2($ggb$numeral_elm$Numeral$emptyReplace, ' \\$', lformat)) : (A2($elm$core$String$contains, '$ ', lformat) ? _Utils_Tuple2(
+		' ',
+		A2($ggb$numeral_elm$Numeral$emptyReplace, '\\$ ', lformat)) : _Utils_Tuple2(
+		'',
+		A2($ggb$numeral_elm$Numeral$emptyReplace, '\\$', lformat)));
+};
+var $ggb$numeral_elm$Numeral$formatCurrency = F4(
+	function (lang, lformat, value, strValue) {
+		var symbolIndex = A2($ggb$numeral_elm$Numeral$indexOf, '$', lformat);
+		var openParenIndex = A2($ggb$numeral_elm$Numeral$indexOf, '(', lformat);
+		var minusSignIndex = A2($ggb$numeral_elm$Numeral$indexOf, '-', lformat);
+		var currencySymbol = lang.currency.symbol;
+		var _v0 = $ggb$numeral_elm$Numeral$formatWithoutCurrency(lformat);
+		var space = _v0.a;
+		var format1 = _v0.b;
+		var formatted = $ggb$numeral_elm$Numeral$formatNumber(
+			A3($ggb$numeral_elm$Numeral$empty, lang, format1, value));
+		return (symbolIndex <= 1) ? ((A2($elm$core$String$contains, '(', formatted) || A2($elm$core$String$contains, '-', formatted)) ? (((_Utils_cmp(symbolIndex, openParenIndex) < 0) || (_Utils_cmp(symbolIndex, minusSignIndex) < 0)) ? A2(
+			$elm$core$String$join,
+			'',
+			_List_fromArray(
+				[
+					currencySymbol,
+					space,
+					A2($elm$core$String$contains, '-', formatted) ? '-' : '',
+					A2($elm$core$String$contains, '(', formatted) ? '(' : '',
+					A3(
+					$elm$core$String$slice,
+					1,
+					$elm$core$String$length(formatted),
+					formatted)
+				])) : A2(
+			$elm$core$String$join,
+			'',
+			_List_fromArray(
+				[
+					A2($elm$core$String$contains, '-', formatted) ? '-' : '',
+					A2($elm$core$String$contains, '(', formatted) ? '(' : '',
+					currencySymbol,
+					space,
+					A3(
+					$elm$core$String$slice,
+					1,
+					$elm$core$String$length(formatted),
+					formatted)
+				]))) : _Utils_ap(
+			currencySymbol,
+			_Utils_ap(space, formatted))) : (A2($elm$core$String$contains, ')', formatted) ? A2(
+			$elm$core$String$join,
+			'',
+			_List_fromArray(
+				[
+					A3(
+					$elm$core$String$slice,
+					0,
+					$elm$core$String$length(formatted) - 1,
+					formatted),
+					space,
+					currencySymbol,
+					')'
+				])) : _Utils_ap(
+			formatted,
+			_Utils_ap(space, currencySymbol)));
+	});
+var $ggb$numeral_elm$Numeral$formatWithoutPercent = function (lformat) {
+	return A2($elm$core$String$contains, ' %', lformat) ? _Utils_Tuple2(
+		' ',
+		A2($ggb$numeral_elm$Numeral$emptyReplace, ' %', lformat)) : _Utils_Tuple2(
+		'',
+		A2($ggb$numeral_elm$Numeral$emptyReplace, '%', lformat));
+};
+var $ggb$numeral_elm$Numeral$formatPercentage = F4(
+	function (lang, lformat, value, strValue) {
+		var value1 = value * 100;
+		var _v0 = $ggb$numeral_elm$Numeral$formatWithoutPercent(lformat);
+		var space = _v0.a;
+		var format1 = _v0.b;
+		var formatted = $ggb$numeral_elm$Numeral$formatNumber(
+			A3($ggb$numeral_elm$Numeral$empty, lang, format1, value1));
+		return A2($elm$core$String$contains, ')', formatted) ? A2(
+			$elm$core$String$join,
+			'',
+			_List_fromArray(
+				[
+					A3(
+					$elm$core$String$slice,
+					0,
+					$elm$core$String$length(formatted) - 1,
+					formatted),
+					space,
+					'%',
+					')'
+				])) : (formatted + (space + '%'));
+	});
+var $ggb$numeral_elm$Numeral$formatTime = F4(
+	function (lang, lformat, value, strValue) {
+		var hours = $elm$core$Basics$floor((value / 60) / 60);
+		var minutes = $elm$core$Basics$floor((value - ((hours * 60) * 60)) / 60);
+		var seconds = $elm$core$Basics$round((value - ((hours * 60) * 60)) - (minutes * 60));
+		var hasOneDigit = function (val) {
+			return ($elm$core$String$length(val) < 2) ? ('0' + val) : val;
+		};
+		return A2(
+			$elm$core$String$join,
+			':',
+			_List_fromArray(
+				[
+					$elm$core$String$fromFloat(hours),
+					hasOneDigit(
+					$elm$core$String$fromFloat(minutes)),
+					hasOneDigit(
+					$elm$core$String$fromInt(seconds))
+				]));
+	});
+var $ggb$numeral_elm$Numeral$formatWithLanguage = F3(
+	function (lang, lformat, value) {
+		return A2($elm$core$String$contains, '$', lformat) ? A4(
+			$ggb$numeral_elm$Numeral$formatCurrency,
+			lang,
+			lformat,
+			value,
+			$elm$core$String$fromFloat(value)) : (A2($elm$core$String$contains, '%', lformat) ? A4(
+			$ggb$numeral_elm$Numeral$formatPercentage,
+			lang,
+			lformat,
+			value,
+			$elm$core$String$fromFloat(value)) : (A2($elm$core$String$contains, ':', lformat) ? A4(
+			$ggb$numeral_elm$Numeral$formatTime,
+			lang,
+			lformat,
+			value,
+			$elm$core$String$fromFloat(value)) : $ggb$numeral_elm$Numeral$formatNumber(
+			A3($ggb$numeral_elm$Numeral$empty, lang, lformat, value))));
+	});
+var $ggb$numeral_elm$Languages$English$englishOrdinal = function (number) {
+	var number1 = $elm$core$Basics$floor(number);
+	var b = A2($elm$core$Basics$modBy, 10, number1);
+	return ($elm$core$Basics$floor(
+		A2($elm$core$Basics$modBy, 100, number1) / 10) === 1) ? 'th' : ((b === 1) ? 'st' : ((b === 2) ? 'nd' : ((b === 3) ? 'rd' : 'th')));
+};
+var $ggb$numeral_elm$Languages$English$lang = {
+	abbreviations: {billion: 'b', million: 'm', thousand: 'k', trillion: 't'},
+	currency: {symbol: '$'},
+	delimiters: {decimal: '.', thousands: ','},
+	ordinal: $ggb$numeral_elm$Languages$English$englishOrdinal
+};
+var $ggb$numeral_elm$Numeral$format = $ggb$numeral_elm$Numeral$formatWithLanguage($ggb$numeral_elm$Languages$English$lang);
+var $author$project$Bar$valueFormatter = $ggb$numeral_elm$Numeral$format('0a');
 var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$ColorPalette = function (a) {
 	return {$: 'ColorPalette', a: a};
 };
@@ -10643,6 +11074,15 @@ var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$setLayout = F2(
 var $data_viz_lab$elm_chart_builder$Chart$Bar$withGroupedLayout = function (config) {
 	return A2($data_viz_lab$elm_chart_builder$Chart$Internal$Type$setLayout, $data_viz_lab$elm_chart_builder$Chart$Internal$Type$GroupedBar, config);
 };
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$setXAxisBand = F2(
+	function (orientation, _v0) {
+		var c = _v0.a;
+		return $data_viz_lab$elm_chart_builder$Chart$Internal$Type$toConfig(
+			_Utils_update(
+				c,
+				{axisXBand: orientation}));
+	});
+var $data_viz_lab$elm_chart_builder$Chart$Bar$withXAxis = $data_viz_lab$elm_chart_builder$Chart$Internal$Type$setXAxisBand;
 var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$setYAxisContinuous = F2(
 	function (orientation, _v0) {
 		var c = _v0.a;
@@ -10652,6 +11092,12 @@ var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$setYAxisContinuous = F2(
 				{axisYContinuous: orientation}));
 	});
 var $data_viz_lab$elm_chart_builder$Chart$Bar$withYAxis = $data_viz_lab$elm_chart_builder$Chart$Internal$Type$setYAxisContinuous;
+var $data_viz_lab$elm_chart_builder$Chart$Bar$axisBottom = $data_viz_lab$elm_chart_builder$Chart$Internal$Axis$Bottom;
+var $author$project$Bar$xAxis = $data_viz_lab$elm_chart_builder$Chart$Bar$axisBottom(
+	_List_fromArray(
+		[
+			$gampleman$elm_visualization$Axis$tickSizeOuter(0)
+		]));
 var $data_viz_lab$elm_chart_builder$Chart$Bar$axisLeft = $data_viz_lab$elm_chart_builder$Chart$Internal$Axis$Left;
 var $gampleman$elm_visualization$Axis$TickCount = function (a) {
 	return {$: 'TickCount', a: a};
@@ -10664,31 +11110,34 @@ var $gampleman$elm_visualization$Axis$tickFormat = $gampleman$elm_visualization$
 var $author$project$Bar$yAxis = $data_viz_lab$elm_chart_builder$Chart$Bar$axisLeft(
 	_List_fromArray(
 		[
-			$gampleman$elm_visualization$Axis$tickCount(5),
+			$gampleman$elm_visualization$Axis$tickCount(3),
 			$gampleman$elm_visualization$Axis$tickFormat($author$project$Bar$valueFormatter)
 		]));
 var $data_viz_lab$elm_chart_builder$Chart$Bar$yColumnTitle = $data_viz_lab$elm_chart_builder$Chart$Internal$Type$YColumnTitle;
 var $author$project$Bar$verticalGrouped = function (width) {
 	return A2(
 		$data_viz_lab$elm_chart_builder$Chart$Bar$render,
-		_Utils_Tuple2($author$project$Bar$data, $author$project$Bar$accessor),
+		_Utils_Tuple2($author$project$Data$groupData, $author$project$Bar$accessor),
 		A2(
-			$data_viz_lab$elm_chart_builder$Chart$Bar$withYAxis,
-			$author$project$Bar$yAxis,
-			$data_viz_lab$elm_chart_builder$Chart$Bar$withGroupedLayout(
-				A2(
-					$data_viz_lab$elm_chart_builder$Chart$Bar$withColumnTitle,
-					$data_viz_lab$elm_chart_builder$Chart$Bar$yColumnTitle($author$project$Bar$valueFormatter),
+			$data_viz_lab$elm_chart_builder$Chart$Bar$withXAxis,
+			$author$project$Bar$xAxis,
+			A2(
+				$data_viz_lab$elm_chart_builder$Chart$Bar$withYAxis,
+				$author$project$Bar$yAxis,
+				$data_viz_lab$elm_chart_builder$Chart$Bar$withGroupedLayout(
 					A2(
-						$data_viz_lab$elm_chart_builder$Chart$Bar$withColorPalette,
-						$author$project$Bar$colorScheme,
-						$data_viz_lab$elm_chart_builder$Chart$Bar$init(
-							{
-								height: $author$project$Bar$toHeight(
-									$author$project$Bar$toWidth(width)),
-								margin: {bottom: 20, left: 40, right: 10, top: 5},
-								width: $author$project$Bar$toWidth(width)
-							}))))));
+						$data_viz_lab$elm_chart_builder$Chart$Bar$withColumnTitle,
+						$data_viz_lab$elm_chart_builder$Chart$Bar$yColumnTitle($author$project$Bar$valueFormatter),
+						A2(
+							$data_viz_lab$elm_chart_builder$Chart$Bar$withColorPalette,
+							$author$project$Bar$colorScheme,
+							$data_viz_lab$elm_chart_builder$Chart$Bar$init(
+								{
+									height: $author$project$Helpers$toChartHeight(
+										$author$project$Helpers$toChartWidth(width)),
+									margin: $author$project$Helpers$margin,
+									width: $author$project$Helpers$toChartWidth(width)
+								})))))));
 };
 var $author$project$Bar$view = function (_v0) {
 	var width = _v0.width;
@@ -10698,6 +11147,6000 @@ var $author$project$Bar$view = function (_v0) {
 			$author$project$Bar$verticalGrouped(width),
 			$author$project$Bar$dataPrev,
 			$author$project$Bar$codePrev
+		]);
+};
+var $author$project$Line$codePrev = A2(
+	$elm$html$Html$div,
+	_List_fromArray(
+		[
+			$elm$html$Html$Attributes$class('example__code-prev')
+		]),
+	_List_Nil);
+var $author$project$Line$dataPrev = A2(
+	$elm$html$Html$div,
+	_List_fromArray(
+		[
+			$elm$html$Html$Attributes$class('example__data-prev')
+		]),
+	_List_Nil);
+var $author$project$Line$desc = A2(
+	$elm$html$Html$div,
+	_List_fromArray(
+		[
+			$elm$html$Html$Attributes$class('example__desc')
+		]),
+	_List_fromArray(
+		[
+			A2(
+			$elm$html$Html$h3,
+			_List_Nil,
+			_List_fromArray(
+				[
+					$elm$html$Html$text('Continuous line chart with dots')
+				])),
+			A2(
+			$elm$html$Html$a,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$href('https://github.com/data-viz-lab/homepage/blob/main/src/Line.elm')
+				]),
+			_List_fromArray(
+				[
+					$elm$html$Html$text('source code')
+				]))
+		]));
+var $data_viz_lab$elm_chart_builder$Chart$Line$AccessorCont = F3(
+	function (xGroup, xValue, yValue) {
+		return {xGroup: xGroup, xValue: xValue, yValue: yValue};
+	});
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$AccessorContinuous = function (a) {
+	return {$: 'AccessorContinuous', a: a};
+};
+var $data_viz_lab$elm_chart_builder$Chart$Line$cont = function (acc) {
+	return $data_viz_lab$elm_chart_builder$Chart$Internal$Type$AccessorContinuous(acc);
+};
+var $author$project$Line$accessor = $data_viz_lab$elm_chart_builder$Chart$Line$cont(
+	A3(
+		$data_viz_lab$elm_chart_builder$Chart$Line$AccessorCont,
+		A2(
+			$elm$core$Basics$composeR,
+			function ($) {
+				return $.groupLabel;
+			},
+			$elm$core$Maybe$Just),
+		function ($) {
+			return $.x;
+		},
+		function ($) {
+			return $.y;
+		}));
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Symbol$Circle = function (a) {
+	return {$: 'Circle', a: a};
+};
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Symbol$initialConf = {identifier: 'symbol', size: $elm$core$Maybe$Nothing, styles: _List_Nil};
+var $data_viz_lab$elm_chart_builder$Chart$Symbol$circle = $data_viz_lab$elm_chart_builder$Chart$Internal$Symbol$Circle($data_viz_lab$elm_chart_builder$Chart$Internal$Symbol$initialConf);
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Symbol$Corner = function (a) {
+	return {$: 'Corner', a: a};
+};
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Symbol$Custom = function (a) {
+	return {$: 'Custom', a: a};
+};
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Symbol$Triangle = function (a) {
+	return {$: 'Triangle', a: a};
+};
+var $data_viz_lab$elm_chart_builder$Chart$Symbol$withSize = F2(
+	function (size, symbol) {
+		switch (symbol.$) {
+			case 'Custom':
+				var conf = symbol.a;
+				return $data_viz_lab$elm_chart_builder$Chart$Internal$Symbol$Custom(conf);
+			case 'Circle':
+				var conf = symbol.a;
+				return $data_viz_lab$elm_chart_builder$Chart$Internal$Symbol$Circle(
+					_Utils_update(
+						conf,
+						{
+							size: $elm$core$Maybe$Just(size)
+						}));
+			case 'Corner':
+				var conf = symbol.a;
+				return $data_viz_lab$elm_chart_builder$Chart$Internal$Symbol$Corner(
+					_Utils_update(
+						conf,
+						{
+							size: $elm$core$Maybe$Just(size)
+						}));
+			case 'Triangle':
+				var conf = symbol.a;
+				return $data_viz_lab$elm_chart_builder$Chart$Internal$Symbol$Triangle(
+					_Utils_update(
+						conf,
+						{
+							size: $elm$core$Maybe$Just(size)
+						}));
+			default:
+				return symbol;
+		}
+	});
+var $data_viz_lab$elm_chart_builder$Chart$Symbol$withStyle = F2(
+	function (style, symbol) {
+		switch (symbol.$) {
+			case 'Custom':
+				var conf = symbol.a;
+				return $data_viz_lab$elm_chart_builder$Chart$Internal$Symbol$Custom(
+					_Utils_update(
+						conf,
+						{styles: style}));
+			case 'Circle':
+				var conf = symbol.a;
+				return $data_viz_lab$elm_chart_builder$Chart$Internal$Symbol$Circle(
+					_Utils_update(
+						conf,
+						{styles: style}));
+			case 'Corner':
+				var conf = symbol.a;
+				return $data_viz_lab$elm_chart_builder$Chart$Internal$Symbol$Corner(
+					_Utils_update(
+						conf,
+						{styles: style}));
+			case 'Triangle':
+				var conf = symbol.a;
+				return $data_viz_lab$elm_chart_builder$Chart$Internal$Symbol$Triangle(
+					_Utils_update(
+						conf,
+						{styles: style}));
+			default:
+				return symbol;
+		}
+	});
+var $author$project$Line$circle = A2(
+	$data_viz_lab$elm_chart_builder$Chart$Symbol$withSize,
+	8,
+	A2(
+		$data_viz_lab$elm_chart_builder$Chart$Symbol$withStyle,
+		_List_fromArray(
+			[
+				_Utils_Tuple2('stroke', 'white')
+			]),
+		$data_viz_lab$elm_chart_builder$Chart$Symbol$circle));
+var $author$project$Line$colorScheme = $gampleman$elm_visualization$Scale$Color$tableau10;
+var $author$project$Data$continuousData = _List_fromArray(
+	[
+		{groupLabel: 'A', x: 1991, y: 10},
+		{groupLabel: 'A', x: 1992, y: 16},
+		{groupLabel: 'A', x: 1993, y: 26},
+		{groupLabel: 'B', x: 1991, y: 13},
+		{groupLabel: 'B', x: 1992, y: 23},
+		{groupLabel: 'B', x: 1993, y: 16}
+	]);
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$GroupedLine = {$: 'GroupedLine'};
+var $data_viz_lab$elm_chart_builder$Chart$Line$withGroupedLayout = function (config) {
+	return A2($data_viz_lab$elm_chart_builder$Chart$Internal$Type$setLayout, $data_viz_lab$elm_chart_builder$Chart$Internal$Type$GroupedLine, config);
+};
+var $data_viz_lab$elm_chart_builder$Chart$Line$init = function (c) {
+	return A2(
+		$data_viz_lab$elm_chart_builder$Chart$Internal$Type$setDimensions,
+		{height: c.height, margin: c.margin, width: c.width},
+		$data_viz_lab$elm_chart_builder$Chart$Line$withGroupedLayout($data_viz_lab$elm_chart_builder$Chart$Internal$Type$defaultConfig));
+};
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$DataContinuous = function (a) {
+	return {$: 'DataContinuous', a: a};
+};
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$DataTime = function (a) {
+	return {$: 'DataTime', a: a};
+};
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$externalToDataContinuousGroup = F2(
+	function (externalData, accessorGroup) {
+		var data = $data_viz_lab$elm_chart_builder$Chart$Internal$Type$fromExternalData(externalData);
+		if (accessorGroup.$ === 'AccessorContinuous') {
+			var accessor = accessorGroup.a;
+			return $data_viz_lab$elm_chart_builder$Chart$Internal$Type$DataContinuous(
+				A2(
+					$elm$core$List$map,
+					function (d) {
+						var groupLabel = accessor.xGroup(d.a);
+						var firstPoint = function (p) {
+							return _Utils_Tuple2(
+								accessor.xValue(p),
+								accessor.yValue(p));
+						}(d.a);
+						var points = A2(
+							$elm$core$List$cons,
+							firstPoint,
+							A2(
+								$elm$core$List$map,
+								function (p) {
+									return _Utils_Tuple2(
+										accessor.xValue(p),
+										accessor.yValue(p));
+								},
+								d.b));
+						return {groupLabel: groupLabel, points: points};
+					},
+					A2(
+						$elm_community$list_extra$List$Extra$groupWhile,
+						F2(
+							function (a, b) {
+								return _Utils_eq(
+									accessor.xGroup(a),
+									accessor.xGroup(b));
+							}),
+						A2(
+							$elm$core$List$sortBy,
+							A2(
+								$elm$core$Basics$composeR,
+								accessor.xGroup,
+								$elm$core$Maybe$withDefault('')),
+							data))));
+		} else {
+			var accessor = accessorGroup.a;
+			return $data_viz_lab$elm_chart_builder$Chart$Internal$Type$DataTime(
+				A2(
+					$elm$core$List$map,
+					function (d) {
+						var groupLabel = accessor.xGroup(d.a);
+						var firstPoint = function (p) {
+							return _Utils_Tuple2(
+								accessor.xValue(p),
+								accessor.yValue(p));
+						}(d.a);
+						var points = A2(
+							$elm$core$List$cons,
+							firstPoint,
+							A2(
+								$elm$core$List$map,
+								function (p) {
+									return _Utils_Tuple2(
+										accessor.xValue(p),
+										accessor.yValue(p));
+								},
+								d.b));
+						return {groupLabel: groupLabel, points: points};
+					},
+					A2(
+						$elm_community$list_extra$List$Extra$groupWhile,
+						F2(
+							function (a, b) {
+								return _Utils_eq(
+									accessor.xGroup(a),
+									accessor.xGroup(b));
+							}),
+						A2(
+							$elm$core$List$sortBy,
+							A2(
+								$elm$core$Basics$composeR,
+								accessor.xGroup,
+								$elm$core$Maybe$withDefault('')),
+							data))));
+		}
+	});
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Line$continuousXAxis = F2(
+	function (c, scale) {
+		if (c.showXAxis) {
+			var _v0 = c.axisXContinuous;
+			if (_v0.$ === 'Bottom') {
+				var attributes = _v0.a;
+				return _List_fromArray(
+					[
+						A2(
+						$elm_community$typed_svg$TypedSvg$g,
+						_List_fromArray(
+							[
+								$elm_community$typed_svg$TypedSvg$Attributes$transform(
+								_List_fromArray(
+									[
+										A2($elm_community$typed_svg$TypedSvg$Types$Translate, c.margin.left, (c.height + $data_viz_lab$elm_chart_builder$Chart$Internal$Type$bottomGap) + c.margin.top)
+									])),
+								$elm_community$typed_svg$TypedSvg$Attributes$class(
+								_List_fromArray(
+									[$data_viz_lab$elm_chart_builder$Chart$Internal$Constants$axisClassName, $data_viz_lab$elm_chart_builder$Chart$Internal$Constants$axisXClassName, $data_viz_lab$elm_chart_builder$Chart$Internal$Constants$componentClassName]))
+							]),
+						_List_fromArray(
+							[
+								A2($gampleman$elm_visualization$Axis$bottom, attributes, scale)
+							]))
+					]);
+			} else {
+				var attributes = _v0.a;
+				return _List_fromArray(
+					[
+						A2(
+						$elm_community$typed_svg$TypedSvg$g,
+						_List_fromArray(
+							[
+								$elm_community$typed_svg$TypedSvg$Attributes$transform(
+								_List_fromArray(
+									[
+										A2($elm_community$typed_svg$TypedSvg$Types$Translate, c.margin.left, c.margin.top)
+									])),
+								$elm_community$typed_svg$TypedSvg$Attributes$class(
+								_List_fromArray(
+									[$data_viz_lab$elm_chart_builder$Chart$Internal$Constants$axisClassName, $data_viz_lab$elm_chart_builder$Chart$Internal$Constants$axisXClassName, $data_viz_lab$elm_chart_builder$Chart$Internal$Constants$componentClassName]))
+							]),
+						_List_fromArray(
+							[
+								A2($gampleman$elm_visualization$Axis$top, attributes, scale)
+							]))
+					]);
+			}
+		} else {
+			return _List_Nil;
+		}
+	});
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Line$timeXAxis = F2(
+	function (c, scale) {
+		if (c.showXAxis) {
+			if (scale.$ === 'Just') {
+				var s = scale.a;
+				var _v1 = c.axisXTime;
+				if (_v1.$ === 'Bottom') {
+					var attributes = _v1.a;
+					return _List_fromArray(
+						[
+							A2(
+							$elm_community$typed_svg$TypedSvg$g,
+							_List_fromArray(
+								[
+									$elm_community$typed_svg$TypedSvg$Attributes$transform(
+									_List_fromArray(
+										[
+											A2($elm_community$typed_svg$TypedSvg$Types$Translate, c.margin.left, (c.height + $data_viz_lab$elm_chart_builder$Chart$Internal$Type$bottomGap) + c.margin.top)
+										])),
+									$elm_community$typed_svg$TypedSvg$Attributes$class(
+									_List_fromArray(
+										[$data_viz_lab$elm_chart_builder$Chart$Internal$Constants$axisClassName, $data_viz_lab$elm_chart_builder$Chart$Internal$Constants$axisXClassName, $data_viz_lab$elm_chart_builder$Chart$Internal$Constants$componentClassName]))
+								]),
+							_List_fromArray(
+								[
+									A2($gampleman$elm_visualization$Axis$bottom, attributes, s)
+								]))
+						]);
+				} else {
+					var attributes = _v1.a;
+					return _List_fromArray(
+						[
+							A2(
+							$elm_community$typed_svg$TypedSvg$g,
+							_List_fromArray(
+								[
+									$elm_community$typed_svg$TypedSvg$Attributes$transform(
+									_List_fromArray(
+										[
+											A2($elm_community$typed_svg$TypedSvg$Types$Translate, c.margin.left, (c.height + $data_viz_lab$elm_chart_builder$Chart$Internal$Type$bottomGap) + c.margin.top)
+										])),
+									$elm_community$typed_svg$TypedSvg$Attributes$class(
+									_List_fromArray(
+										[$data_viz_lab$elm_chart_builder$Chart$Internal$Constants$axisClassName, $data_viz_lab$elm_chart_builder$Chart$Internal$Constants$axisXClassName, $data_viz_lab$elm_chart_builder$Chart$Internal$Constants$componentClassName]))
+								]),
+							_List_fromArray(
+								[
+									A2($gampleman$elm_visualization$Axis$top, attributes, s)
+								]))
+						]);
+				}
+			} else {
+				return _List_Nil;
+			}
+		} else {
+			return _List_Nil;
+		}
+	});
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Line$continuousOrTimeAxisGenerator = F3(
+	function (xTimeScale, xContinuousScale, _v0) {
+		var data = _v0.a;
+		var config = _v0.b;
+		var c = $data_viz_lab$elm_chart_builder$Chart$Internal$Type$fromConfig(config);
+		if (data.$ === 'DataTime') {
+			return A2($data_viz_lab$elm_chart_builder$Chart$Internal$Line$timeXAxis, c, xTimeScale);
+		} else {
+			return A2($data_viz_lab$elm_chart_builder$Chart$Internal$Line$continuousXAxis, c, xContinuousScale);
+		}
+	});
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Constants$axisYLeftClassName = 'chart-builder__axis--y-left';
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Helpers$floorFloat = function (f) {
+	return $elm$core$Basics$floor(f);
+};
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Line$continuousYAxis = F2(
+	function (c, scale) {
+		if (c.showYAxis) {
+			var _v0 = c.axisYContinuous;
+			switch (_v0.$) {
+				case 'Left':
+					var attributes = _v0.a;
+					return _List_fromArray(
+						[
+							A2(
+							$elm_community$typed_svg$TypedSvg$g,
+							_List_fromArray(
+								[
+									$elm_community$typed_svg$TypedSvg$Attributes$transform(
+									_List_fromArray(
+										[
+											A2(
+											$elm_community$typed_svg$TypedSvg$Types$Translate,
+											$data_viz_lab$elm_chart_builder$Chart$Internal$Helpers$floorFloat(c.margin.left - $data_viz_lab$elm_chart_builder$Chart$Internal$Type$leftGap),
+											c.margin.top)
+										])),
+									$elm_community$typed_svg$TypedSvg$Attributes$class(
+									_List_fromArray(
+										[$data_viz_lab$elm_chart_builder$Chart$Internal$Constants$axisClassName, $data_viz_lab$elm_chart_builder$Chart$Internal$Constants$axisYClassName, $data_viz_lab$elm_chart_builder$Chart$Internal$Constants$componentClassName]))
+								]),
+							_List_fromArray(
+								[
+									A2($gampleman$elm_visualization$Axis$left, attributes, scale)
+								]))
+						]);
+				case 'Right':
+					var attributes = _v0.a;
+					return _List_fromArray(
+						[
+							A2(
+							$elm_community$typed_svg$TypedSvg$g,
+							_List_fromArray(
+								[
+									$elm_community$typed_svg$TypedSvg$Attributes$transform(
+									_List_fromArray(
+										[
+											A2(
+											$elm_community$typed_svg$TypedSvg$Types$Translate,
+											$data_viz_lab$elm_chart_builder$Chart$Internal$Helpers$floorFloat((c.width + c.margin.left) + $data_viz_lab$elm_chart_builder$Chart$Internal$Type$leftGap),
+											c.margin.top)
+										])),
+									$elm_community$typed_svg$TypedSvg$Attributes$class(
+									_List_fromArray(
+										[$data_viz_lab$elm_chart_builder$Chart$Internal$Constants$axisClassName, $data_viz_lab$elm_chart_builder$Chart$Internal$Constants$axisYClassName, $data_viz_lab$elm_chart_builder$Chart$Internal$Constants$componentClassName]))
+								]),
+							_List_fromArray(
+								[
+									A2($gampleman$elm_visualization$Axis$right, attributes, scale)
+								]))
+						]);
+				default:
+					var attributes = _v0.a;
+					var rightAttrs = _Utils_ap(
+						attributes,
+						_List_fromArray(
+							[
+								$gampleman$elm_visualization$Axis$tickSizeInner(
+								$data_viz_lab$elm_chart_builder$Chart$Internal$Helpers$floorFloat(c.width)),
+								$gampleman$elm_visualization$Axis$tickPadding(c.margin.right + c.margin.left)
+							]));
+					var leftAttrs = _Utils_ap(
+						attributes,
+						_List_fromArray(
+							[
+								$gampleman$elm_visualization$Axis$tickSizeInner(0)
+							]));
+					return _List_fromArray(
+						[
+							A2(
+							$elm_community$typed_svg$TypedSvg$g,
+							_List_fromArray(
+								[
+									$elm_community$typed_svg$TypedSvg$Attributes$transform(
+									_List_fromArray(
+										[
+											A2(
+											$elm_community$typed_svg$TypedSvg$Types$Translate,
+											$data_viz_lab$elm_chart_builder$Chart$Internal$Helpers$floorFloat(c.margin.left - $data_viz_lab$elm_chart_builder$Chart$Internal$Type$leftGap),
+											c.margin.top)
+										])),
+									$elm_community$typed_svg$TypedSvg$Attributes$class(
+									_List_fromArray(
+										[$data_viz_lab$elm_chart_builder$Chart$Internal$Constants$axisClassName, $data_viz_lab$elm_chart_builder$Chart$Internal$Constants$axisYClassName, $data_viz_lab$elm_chart_builder$Chart$Internal$Constants$axisYLeftClassName, $data_viz_lab$elm_chart_builder$Chart$Internal$Constants$componentClassName]))
+								]),
+							_List_fromArray(
+								[
+									A2($gampleman$elm_visualization$Axis$left, leftAttrs, scale)
+								])),
+							A2(
+							$elm_community$typed_svg$TypedSvg$g,
+							_List_fromArray(
+								[
+									$elm_community$typed_svg$TypedSvg$Attributes$transform(
+									_List_fromArray(
+										[
+											A2(
+											$elm_community$typed_svg$TypedSvg$Types$Translate,
+											$data_viz_lab$elm_chart_builder$Chart$Internal$Helpers$floorFloat(c.margin.left - $data_viz_lab$elm_chart_builder$Chart$Internal$Type$leftGap),
+											c.margin.top)
+										])),
+									$elm_community$typed_svg$TypedSvg$Attributes$class(
+									_List_fromArray(
+										[$data_viz_lab$elm_chart_builder$Chart$Internal$Constants$axisClassName, $data_viz_lab$elm_chart_builder$Chart$Internal$Constants$axisYClassName, $data_viz_lab$elm_chart_builder$Chart$Internal$Constants$axisYRightClassName, $data_viz_lab$elm_chart_builder$Chart$Internal$Constants$componentClassName]))
+								]),
+							_List_fromArray(
+								[
+									A2($gampleman$elm_visualization$Axis$right, rightAttrs, scale)
+								]))
+						]);
+			}
+		} else {
+			return _List_Nil;
+		}
+	});
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$dataContinuousGroupToDataContinuous = function (data) {
+	if (data.$ === 'DataTime') {
+		var d = data.a;
+		return A2(
+			$elm$core$List$map,
+			function (group) {
+				var points = group.points;
+				return {
+					groupLabel: group.groupLabel,
+					points: A2(
+						$elm$core$List$map,
+						function (p) {
+							return _Utils_Tuple2(
+								$elm$time$Time$posixToMillis(p.a),
+								p.b);
+						},
+						points)
+				};
+			},
+			d);
+	} else {
+		var d = data.a;
+		return d;
+	}
+};
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$dataContinuousGroupToDataTime = function (data) {
+	if (data.$ === 'DataTime') {
+		var d = data.a;
+		return d;
+	} else {
+		return _List_Nil;
+	}
+};
+var $folkertdev$elm_deque$Internal$empty = {front: _List_Nil, rear: _List_Nil, sizeF: 0, sizeR: 0};
+var $folkertdev$elm_deque$Deque$empty = $folkertdev$elm_deque$Deque$Deque($folkertdev$elm_deque$Internal$empty);
+var $folkertdev$one_true_path_experiment$LowLevel$Command$ClosePath = {$: 'ClosePath'};
+var $folkertdev$one_true_path_experiment$LowLevel$Command$CurveTo = function (a) {
+	return {$: 'CurveTo', a: a};
+};
+var $folkertdev$one_true_path_experiment$LowLevel$Command$EllipticalArc = function (a) {
+	return {$: 'EllipticalArc', a: a};
+};
+var $folkertdev$one_true_path_experiment$LowLevel$Command$QuadraticBezierCurveTo = function (a) {
+	return {$: 'QuadraticBezierCurveTo', a: a};
+};
+var $folkertdev$one_true_path_experiment$LowLevel$Command$merge = F2(
+	function (instruction1, instruction2) {
+		var _v0 = _Utils_Tuple2(instruction1, instruction2);
+		_v0$5:
+		while (true) {
+			switch (_v0.a.$) {
+				case 'LineTo':
+					if (_v0.b.$ === 'LineTo') {
+						var p1 = _v0.a.a;
+						var p2 = _v0.b.a;
+						return $elm$core$Result$Ok(
+							$folkertdev$one_true_path_experiment$LowLevel$Command$LineTo(
+								_Utils_ap(p1, p2)));
+					} else {
+						break _v0$5;
+					}
+				case 'CurveTo':
+					if (_v0.b.$ === 'CurveTo') {
+						var p1 = _v0.a.a;
+						var p2 = _v0.b.a;
+						return $elm$core$Result$Ok(
+							$folkertdev$one_true_path_experiment$LowLevel$Command$CurveTo(
+								_Utils_ap(p1, p2)));
+					} else {
+						break _v0$5;
+					}
+				case 'QuadraticBezierCurveTo':
+					if (_v0.b.$ === 'QuadraticBezierCurveTo') {
+						var p1 = _v0.a.a;
+						var p2 = _v0.b.a;
+						return $elm$core$Result$Ok(
+							$folkertdev$one_true_path_experiment$LowLevel$Command$QuadraticBezierCurveTo(
+								_Utils_ap(p1, p2)));
+					} else {
+						break _v0$5;
+					}
+				case 'EllipticalArc':
+					if (_v0.b.$ === 'EllipticalArc') {
+						var p1 = _v0.a.a;
+						var p2 = _v0.b.a;
+						return $elm$core$Result$Ok(
+							$folkertdev$one_true_path_experiment$LowLevel$Command$EllipticalArc(
+								_Utils_ap(p1, p2)));
+					} else {
+						break _v0$5;
+					}
+				default:
+					if (_v0.b.$ === 'ClosePath') {
+						var _v1 = _v0.a;
+						var _v2 = _v0.b;
+						return $elm$core$Result$Ok($folkertdev$one_true_path_experiment$LowLevel$Command$ClosePath);
+					} else {
+						break _v0$5;
+					}
+			}
+		}
+		return $elm$core$Result$Err(
+			_Utils_Tuple2(instruction1, instruction2));
+	});
+var $folkertdev$elm_deque$Internal$toList = function (deque) {
+	return _Utils_ap(
+		deque.front,
+		$elm$core$List$reverse(deque.rear));
+};
+var $folkertdev$elm_deque$Deque$unwrap = function (_v0) {
+	var boundedDeque = _v0.a;
+	return boundedDeque;
+};
+var $folkertdev$elm_deque$Deque$toList = A2($elm$core$Basics$composeL, $folkertdev$elm_deque$Internal$toList, $folkertdev$elm_deque$Deque$unwrap);
+var $folkertdev$one_true_path_experiment$SubPath$compressHelper = function (drawtos) {
+	var folder = F2(
+		function (instruction, _v3) {
+			var previous = _v3.a;
+			var accum = _v3.b;
+			var _v2 = A2($folkertdev$one_true_path_experiment$LowLevel$Command$merge, previous, instruction);
+			if (_v2.$ === 'Ok') {
+				var merged = _v2.a;
+				return _Utils_Tuple2(merged, accum);
+			} else {
+				return _Utils_Tuple2(
+					instruction,
+					A2($elm$core$List$cons, previous, accum));
+			}
+		});
+	var _v0 = $folkertdev$elm_deque$Deque$toList(drawtos);
+	if (!_v0.b) {
+		return $folkertdev$elm_deque$Deque$empty;
+	} else {
+		var first = _v0.a;
+		var rest = _v0.b;
+		return $folkertdev$elm_deque$Deque$fromList(
+			$elm$core$List$reverse(
+				function (_v1) {
+					var a = _v1.a;
+					var b = _v1.b;
+					return A2($elm$core$List$cons, a, b);
+				}(
+					A3(
+						$elm$core$List$foldl,
+						folder,
+						_Utils_Tuple2(first, _List_Nil),
+						rest))));
+	}
+};
+var $folkertdev$one_true_path_experiment$SubPath$compress = function (subpath) {
+	if (subpath.$ === 'Empty') {
+		return $folkertdev$one_true_path_experiment$SubPath$Empty;
+	} else {
+		var data = subpath.a;
+		return $folkertdev$one_true_path_experiment$SubPath$SubPath(
+			_Utils_update(
+				data,
+				{
+					drawtos: $folkertdev$one_true_path_experiment$SubPath$compressHelper(data.drawtos)
+				}));
+	}
+};
+var $folkertdev$svg_path_lowlevel$Path$LowLevel$DecimalPlaces = function (a) {
+	return {$: 'DecimalPlaces', a: a};
+};
+var $folkertdev$svg_path_lowlevel$Path$LowLevel$decimalPlaces = $folkertdev$svg_path_lowlevel$Path$LowLevel$DecimalPlaces;
+var $folkertdev$one_true_path_experiment$SubPath$defaultConfig = {decimalPlaces: $elm$core$Maybe$Nothing, mergeAdjacent: false};
+var $folkertdev$one_true_path_experiment$SubPath$optionFolder = F2(
+	function (option, config) {
+		if (option.$ === 'DecimalPlaces') {
+			var n = option.a;
+			return _Utils_update(
+				config,
+				{
+					decimalPlaces: $elm$core$Maybe$Just(n)
+				});
+		} else {
+			return _Utils_update(
+				config,
+				{mergeAdjacent: true});
+		}
+	});
+var $elm$core$List$singleton = function (value) {
+	return _List_fromArray(
+		[value]);
+};
+var $folkertdev$svg_path_lowlevel$Path$LowLevel$Absolute = {$: 'Absolute'};
+var $folkertdev$svg_path_lowlevel$Path$LowLevel$ClosePath = {$: 'ClosePath'};
+var $folkertdev$svg_path_lowlevel$Path$LowLevel$CurveTo = F2(
+	function (a, b) {
+		return {$: 'CurveTo', a: a, b: b};
+	});
+var $folkertdev$svg_path_lowlevel$Path$LowLevel$EllipticalArc = F2(
+	function (a, b) {
+		return {$: 'EllipticalArc', a: a, b: b};
+	});
+var $folkertdev$svg_path_lowlevel$Path$LowLevel$LineTo = F2(
+	function (a, b) {
+		return {$: 'LineTo', a: a, b: b};
+	});
+var $folkertdev$svg_path_lowlevel$Path$LowLevel$QuadraticBezierCurveTo = F2(
+	function (a, b) {
+		return {$: 'QuadraticBezierCurveTo', a: a, b: b};
+	});
+var $folkertdev$one_true_path_experiment$LowLevel$Command$toLowLevelDrawTo = function (drawto) {
+	switch (drawto.$) {
+		case 'LineTo':
+			var coordinates = drawto.a;
+			return A2($folkertdev$svg_path_lowlevel$Path$LowLevel$LineTo, $folkertdev$svg_path_lowlevel$Path$LowLevel$Absolute, coordinates);
+		case 'CurveTo':
+			var coordinates = drawto.a;
+			return A2($folkertdev$svg_path_lowlevel$Path$LowLevel$CurveTo, $folkertdev$svg_path_lowlevel$Path$LowLevel$Absolute, coordinates);
+		case 'QuadraticBezierCurveTo':
+			var coordinates = drawto.a;
+			return A2($folkertdev$svg_path_lowlevel$Path$LowLevel$QuadraticBezierCurveTo, $folkertdev$svg_path_lowlevel$Path$LowLevel$Absolute, coordinates);
+		case 'EllipticalArc':
+			var _arguments = drawto.a;
+			return A2($folkertdev$svg_path_lowlevel$Path$LowLevel$EllipticalArc, $folkertdev$svg_path_lowlevel$Path$LowLevel$Absolute, _arguments);
+		default:
+			return $folkertdev$svg_path_lowlevel$Path$LowLevel$ClosePath;
+	}
+};
+var $folkertdev$svg_path_lowlevel$Path$LowLevel$MoveTo = F2(
+	function (a, b) {
+		return {$: 'MoveTo', a: a, b: b};
+	});
+var $folkertdev$one_true_path_experiment$LowLevel$Command$toLowLevelMoveTo = function (_v0) {
+	var target = _v0.a;
+	return A2($folkertdev$svg_path_lowlevel$Path$LowLevel$MoveTo, $folkertdev$svg_path_lowlevel$Path$LowLevel$Absolute, target);
+};
+var $folkertdev$one_true_path_experiment$SubPath$toLowLevel = function (subpath) {
+	if (subpath.$ === 'Empty') {
+		return $elm$core$Maybe$Nothing;
+	} else {
+		var moveto = subpath.a.moveto;
+		var drawtos = subpath.a.drawtos;
+		return $elm$core$Maybe$Just(
+			{
+				drawtos: A2(
+					$elm$core$List$map,
+					$folkertdev$one_true_path_experiment$LowLevel$Command$toLowLevelDrawTo,
+					$folkertdev$elm_deque$Deque$toList(drawtos)),
+				moveto: $folkertdev$one_true_path_experiment$LowLevel$Command$toLowLevelMoveTo(moveto)
+			});
+	}
+};
+var $folkertdev$svg_path_lowlevel$Path$LowLevel$defaultConfig = {floatFormatter: $elm$core$String$fromFloat};
+var $folkertdev$svg_path_lowlevel$Path$LowLevel$roundTo = F2(
+	function (n, value) {
+		if (!n) {
+			return $elm$core$String$fromInt(
+				$elm$core$Basics$round(value));
+		} else {
+			var sign = (value < 0.0) ? '-' : '';
+			var exp = A2($elm$core$Basics$pow, 10, n);
+			var raised = $elm$core$Basics$abs(
+				$elm$core$Basics$round(value * exp));
+			var decimals = raised % exp;
+			return (!decimals) ? _Utils_ap(
+				sign,
+				$elm$core$String$fromInt((raised / exp) | 0)) : (sign + ($elm$core$String$fromInt((raised / exp) | 0) + ('.' + $elm$core$String$fromInt(decimals))));
+		}
+	});
+var $folkertdev$svg_path_lowlevel$Path$LowLevel$optionFolder = F2(
+	function (option, config) {
+		var n = option.a;
+		return _Utils_update(
+			config,
+			{
+				floatFormatter: $folkertdev$svg_path_lowlevel$Path$LowLevel$roundTo(n)
+			});
+	});
+var $folkertdev$svg_path_lowlevel$Path$LowLevel$accumulateOptions = A2($elm$core$List$foldl, $folkertdev$svg_path_lowlevel$Path$LowLevel$optionFolder, $folkertdev$svg_path_lowlevel$Path$LowLevel$defaultConfig);
+var $folkertdev$svg_path_lowlevel$Path$LowLevel$isEmpty = function (command) {
+	switch (command.$) {
+		case 'LineTo':
+			var mode = command.a;
+			var coordinates = command.b;
+			return $elm$core$List$isEmpty(coordinates);
+		case 'Horizontal':
+			var mode = command.a;
+			var coordinates = command.b;
+			return $elm$core$List$isEmpty(coordinates);
+		case 'Vertical':
+			var mode = command.a;
+			var coordinates = command.b;
+			return $elm$core$List$isEmpty(coordinates);
+		case 'CurveTo':
+			var mode = command.a;
+			var coordinates = command.b;
+			return $elm$core$List$isEmpty(coordinates);
+		case 'SmoothCurveTo':
+			var mode = command.a;
+			var coordinates = command.b;
+			return $elm$core$List$isEmpty(coordinates);
+		case 'QuadraticBezierCurveTo':
+			var mode = command.a;
+			var coordinates = command.b;
+			return $elm$core$List$isEmpty(coordinates);
+		case 'SmoothQuadraticBezierCurveTo':
+			var mode = command.a;
+			var coordinates = command.b;
+			return $elm$core$List$isEmpty(coordinates);
+		case 'EllipticalArc':
+			var mode = command.a;
+			var _arguments = command.b;
+			return $elm$core$List$isEmpty(_arguments);
+		default:
+			return false;
+	}
+};
+var $elm$core$Char$toLower = _Char_toLower;
+var $elm$core$Char$toUpper = _Char_toUpper;
+var $folkertdev$svg_path_lowlevel$Path$LowLevel$stringifyCharacter = F2(
+	function (mode, character) {
+		if (mode.$ === 'Absolute') {
+			return $elm$core$String$fromChar(
+				$elm$core$Char$toUpper(character));
+		} else {
+			return $elm$core$String$fromChar(
+				$elm$core$Char$toLower(character));
+		}
+	});
+var $folkertdev$svg_path_lowlevel$Path$LowLevel$stringifyCoordinate = F2(
+	function (config, _v0) {
+		var x = _v0.a;
+		var y = _v0.b;
+		return config.floatFormatter(x) + (',' + config.floatFormatter(y));
+	});
+var $folkertdev$svg_path_lowlevel$Path$LowLevel$stringifyCoordinate2 = F2(
+	function (config, _v0) {
+		var c1 = _v0.a;
+		var c2 = _v0.b;
+		return A2($folkertdev$svg_path_lowlevel$Path$LowLevel$stringifyCoordinate, config, c1) + (' ' + A2($folkertdev$svg_path_lowlevel$Path$LowLevel$stringifyCoordinate, config, c2));
+	});
+var $folkertdev$svg_path_lowlevel$Path$LowLevel$stringifyCoordinate3 = F2(
+	function (config, _v0) {
+		var c1 = _v0.a;
+		var c2 = _v0.b;
+		var c3 = _v0.c;
+		return A2($folkertdev$svg_path_lowlevel$Path$LowLevel$stringifyCoordinate, config, c1) + (' ' + (A2($folkertdev$svg_path_lowlevel$Path$LowLevel$stringifyCoordinate, config, c2) + (' ' + A2($folkertdev$svg_path_lowlevel$Path$LowLevel$stringifyCoordinate, config, c3))));
+	});
+var $folkertdev$svg_path_lowlevel$Path$LowLevel$encodeFlags = function (_v0) {
+	var arcFlag = _v0.a;
+	var direction = _v0.b;
+	var _v1 = _Utils_Tuple2(arcFlag, direction);
+	if (_v1.a.$ === 'LargestArc') {
+		if (_v1.b.$ === 'Clockwise') {
+			var _v2 = _v1.a;
+			var _v3 = _v1.b;
+			return _Utils_Tuple2(1, 0);
+		} else {
+			var _v6 = _v1.a;
+			var _v7 = _v1.b;
+			return _Utils_Tuple2(1, 1);
+		}
+	} else {
+		if (_v1.b.$ === 'Clockwise') {
+			var _v4 = _v1.a;
+			var _v5 = _v1.b;
+			return _Utils_Tuple2(0, 0);
+		} else {
+			var _v8 = _v1.a;
+			var _v9 = _v1.b;
+			return _Utils_Tuple2(0, 1);
+		}
+	}
+};
+var $folkertdev$svg_path_lowlevel$Path$LowLevel$stringifyEllipticalArcArgument = F2(
+	function (config, _v0) {
+		var radii = _v0.radii;
+		var xAxisRotate = _v0.xAxisRotate;
+		var arcFlag = _v0.arcFlag;
+		var direction = _v0.direction;
+		var target = _v0.target;
+		var _v1 = $folkertdev$svg_path_lowlevel$Path$LowLevel$encodeFlags(
+			_Utils_Tuple2(arcFlag, direction));
+		var arc = _v1.a;
+		var sweep = _v1.b;
+		return A2(
+			$elm$core$String$join,
+			' ',
+			_List_fromArray(
+				[
+					A2($folkertdev$svg_path_lowlevel$Path$LowLevel$stringifyCoordinate, config, radii),
+					$elm$core$String$fromFloat(xAxisRotate),
+					$elm$core$String$fromInt(arc),
+					$elm$core$String$fromInt(sweep),
+					A2($folkertdev$svg_path_lowlevel$Path$LowLevel$stringifyCoordinate, config, target)
+				]));
+	});
+var $folkertdev$svg_path_lowlevel$Path$LowLevel$stringifyDrawTo = F2(
+	function (config, command) {
+		if ($folkertdev$svg_path_lowlevel$Path$LowLevel$isEmpty(command)) {
+			return '';
+		} else {
+			switch (command.$) {
+				case 'LineTo':
+					var mode = command.a;
+					var coordinates = command.b;
+					return _Utils_ap(
+						A2(
+							$folkertdev$svg_path_lowlevel$Path$LowLevel$stringifyCharacter,
+							mode,
+							_Utils_chr('L')),
+						A2(
+							$elm$core$String$join,
+							' ',
+							A2(
+								$elm$core$List$map,
+								$folkertdev$svg_path_lowlevel$Path$LowLevel$stringifyCoordinate(config),
+								coordinates)));
+				case 'Horizontal':
+					var mode = command.a;
+					var coordinates = command.b;
+					return $elm$core$List$isEmpty(coordinates) ? '' : _Utils_ap(
+						A2(
+							$folkertdev$svg_path_lowlevel$Path$LowLevel$stringifyCharacter,
+							mode,
+							_Utils_chr('H')),
+						A2(
+							$elm$core$String$join,
+							' ',
+							A2($elm$core$List$map, $elm$core$String$fromFloat, coordinates)));
+				case 'Vertical':
+					var mode = command.a;
+					var coordinates = command.b;
+					return _Utils_ap(
+						A2(
+							$folkertdev$svg_path_lowlevel$Path$LowLevel$stringifyCharacter,
+							mode,
+							_Utils_chr('V')),
+						A2(
+							$elm$core$String$join,
+							' ',
+							A2($elm$core$List$map, $elm$core$String$fromFloat, coordinates)));
+				case 'CurveTo':
+					var mode = command.a;
+					var coordinates = command.b;
+					return _Utils_ap(
+						A2(
+							$folkertdev$svg_path_lowlevel$Path$LowLevel$stringifyCharacter,
+							mode,
+							_Utils_chr('C')),
+						A2(
+							$elm$core$String$join,
+							' ',
+							A2(
+								$elm$core$List$map,
+								$folkertdev$svg_path_lowlevel$Path$LowLevel$stringifyCoordinate3(config),
+								coordinates)));
+				case 'SmoothCurveTo':
+					var mode = command.a;
+					var coordinates = command.b;
+					return _Utils_ap(
+						A2(
+							$folkertdev$svg_path_lowlevel$Path$LowLevel$stringifyCharacter,
+							mode,
+							_Utils_chr('S')),
+						A2(
+							$elm$core$String$join,
+							' ',
+							A2(
+								$elm$core$List$map,
+								$folkertdev$svg_path_lowlevel$Path$LowLevel$stringifyCoordinate2(config),
+								coordinates)));
+				case 'QuadraticBezierCurveTo':
+					var mode = command.a;
+					var coordinates = command.b;
+					return _Utils_ap(
+						A2(
+							$folkertdev$svg_path_lowlevel$Path$LowLevel$stringifyCharacter,
+							mode,
+							_Utils_chr('Q')),
+						A2(
+							$elm$core$String$join,
+							' ',
+							A2(
+								$elm$core$List$map,
+								$folkertdev$svg_path_lowlevel$Path$LowLevel$stringifyCoordinate2(config),
+								coordinates)));
+				case 'SmoothQuadraticBezierCurveTo':
+					var mode = command.a;
+					var coordinates = command.b;
+					return _Utils_ap(
+						A2(
+							$folkertdev$svg_path_lowlevel$Path$LowLevel$stringifyCharacter,
+							mode,
+							_Utils_chr('T')),
+						A2(
+							$elm$core$String$join,
+							' ',
+							A2(
+								$elm$core$List$map,
+								$folkertdev$svg_path_lowlevel$Path$LowLevel$stringifyCoordinate(config),
+								coordinates)));
+				case 'EllipticalArc':
+					var mode = command.a;
+					var _arguments = command.b;
+					return _Utils_ap(
+						A2(
+							$folkertdev$svg_path_lowlevel$Path$LowLevel$stringifyCharacter,
+							mode,
+							_Utils_chr('A')),
+						A2(
+							$elm$core$String$join,
+							' ',
+							A2(
+								$elm$core$List$map,
+								$folkertdev$svg_path_lowlevel$Path$LowLevel$stringifyEllipticalArcArgument(config),
+								_arguments)));
+				default:
+					return 'Z';
+			}
+		}
+	});
+var $folkertdev$svg_path_lowlevel$Path$LowLevel$stringifyMoveTo = F2(
+	function (config, _v0) {
+		var mode = _v0.a;
+		var coordinate = _v0.b;
+		if (mode.$ === 'Absolute') {
+			return 'M' + A2($folkertdev$svg_path_lowlevel$Path$LowLevel$stringifyCoordinate, config, coordinate);
+		} else {
+			return 'm' + A2($folkertdev$svg_path_lowlevel$Path$LowLevel$stringifyCoordinate, config, coordinate);
+		}
+	});
+var $folkertdev$svg_path_lowlevel$Path$LowLevel$toStringSubPath = F2(
+	function (config, _v0) {
+		var moveto = _v0.moveto;
+		var drawtos = _v0.drawtos;
+		return A2($folkertdev$svg_path_lowlevel$Path$LowLevel$stringifyMoveTo, config, moveto) + (' ' + A2(
+			$elm$core$String$join,
+			' ',
+			A2(
+				$elm$core$List$map,
+				$folkertdev$svg_path_lowlevel$Path$LowLevel$stringifyDrawTo(config),
+				drawtos)));
+	});
+var $folkertdev$svg_path_lowlevel$Path$LowLevel$toStringWith = F2(
+	function (options, subpaths) {
+		var config = $folkertdev$svg_path_lowlevel$Path$LowLevel$accumulateOptions(options);
+		return A2(
+			$elm$core$String$join,
+			' ',
+			A2(
+				$elm$core$List$map,
+				$folkertdev$svg_path_lowlevel$Path$LowLevel$toStringSubPath(config),
+				subpaths));
+	});
+var $folkertdev$one_true_path_experiment$SubPath$toStringWith = F2(
+	function (options, subpath) {
+		var config = A3($elm$core$List$foldl, $folkertdev$one_true_path_experiment$SubPath$optionFolder, $folkertdev$one_true_path_experiment$SubPath$defaultConfig, options);
+		var lowLevelOptions = function () {
+			var _v0 = config.decimalPlaces;
+			if (_v0.$ === 'Nothing') {
+				return _List_Nil;
+			} else {
+				var n = _v0.a;
+				return _List_fromArray(
+					[
+						$folkertdev$svg_path_lowlevel$Path$LowLevel$decimalPlaces(n)
+					]);
+			}
+		}();
+		return A2(
+			$elm$core$Maybe$withDefault,
+			'',
+			A2(
+				$elm$core$Maybe$map,
+				A2(
+					$elm$core$Basics$composeL,
+					$folkertdev$svg_path_lowlevel$Path$LowLevel$toStringWith(lowLevelOptions),
+					$elm$core$List$singleton),
+				$folkertdev$one_true_path_experiment$SubPath$toLowLevel(
+					(config.mergeAdjacent ? $folkertdev$one_true_path_experiment$SubPath$compress : $elm$core$Basics$identity)(subpath))));
+	});
+var $folkertdev$one_true_path_experiment$SubPath$toString = function (subpath) {
+	return A2($folkertdev$one_true_path_experiment$SubPath$toStringWith, _List_Nil, subpath);
+};
+var $folkertdev$one_true_path_experiment$Path$toString = A2(
+	$elm$core$Basics$composeL,
+	$elm$core$String$join(' '),
+	$elm$core$List$map($folkertdev$one_true_path_experiment$SubPath$toString));
+var $folkertdev$one_true_path_experiment$Path$element = F2(
+	function (path, attributes) {
+		return A2(
+			$elm$svg$Svg$path,
+			A2(
+				$elm$core$List$cons,
+				$elm$svg$Svg$Attributes$d(
+					$folkertdev$one_true_path_experiment$Path$toString(path)),
+				attributes),
+			_List_Nil);
+	});
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Line$defaultSymbolSize = 10;
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Symbol$getSymbolSize = function (symbol) {
+	switch (symbol.$) {
+		case 'Triangle':
+			var c = symbol.a;
+			return c.size;
+		case 'Circle':
+			var c = symbol.a;
+			return c.size;
+		case 'Custom':
+			return $elm$core$Maybe$Nothing;
+		case 'Corner':
+			var c = symbol.a;
+			return c.size;
+		default:
+			return $elm$core$Maybe$Nothing;
+	}
+};
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Line$labelGap = 2;
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Line$horizontalLabel = F6(
+	function (config, xScale, yScale, idx, groupLabel, point) {
+		if (groupLabel.$ === 'Just') {
+			var label = groupLabel.a;
+			var conf = $data_viz_lab$elm_chart_builder$Chart$Internal$Type$fromConfig(config);
+			var symbol = A2($data_viz_lab$elm_chart_builder$Chart$Internal$Symbol$getSymbolByIndex, conf.symbols, idx);
+			var labelOffset = $data_viz_lab$elm_chart_builder$Chart$Internal$Line$labelGap + A2(
+				$elm$core$Maybe$withDefault,
+				$data_viz_lab$elm_chart_builder$Chart$Internal$Line$defaultSymbolSize,
+				$data_viz_lab$elm_chart_builder$Chart$Internal$Symbol$getSymbolSize(symbol));
+			var _v1 = point;
+			var xVal = _v1.a;
+			var yVal = _v1.b;
+			var xPos = $data_viz_lab$elm_chart_builder$Chart$Internal$Helpers$floorFloat(
+				A2($gampleman$elm_visualization$Scale$convert, xScale, xVal));
+			var yPos = $data_viz_lab$elm_chart_builder$Chart$Internal$Helpers$floorFloat(
+				A2($gampleman$elm_visualization$Scale$convert, yScale, yVal));
+			var txt = $elm_community$typed_svg$TypedSvg$text_(
+				_List_fromArray(
+					[
+						$elm_community$typed_svg$TypedSvg$Attributes$InPx$y(yPos),
+						$elm_community$typed_svg$TypedSvg$Attributes$InPx$x(xPos + labelOffset),
+						$elm_community$typed_svg$TypedSvg$Attributes$textAnchor($elm_community$typed_svg$TypedSvg$Types$AnchorStart),
+						$elm_community$typed_svg$TypedSvg$Attributes$dominantBaseline($elm_community$typed_svg$TypedSvg$Types$DominantBaselineMiddle),
+						$elm_community$typed_svg$TypedSvg$Attributes$class(
+						_List_fromArray(
+							[$data_viz_lab$elm_chart_builder$Chart$Internal$Constants$labelClassName]))
+					]));
+			var _v2 = conf.showLabels;
+			if (_v2.$ === 'XGroupLabel') {
+				return txt(
+					_List_fromArray(
+						[
+							$elm_community$typed_svg$TypedSvg$Core$text(label)
+						]));
+			} else {
+				return A2($elm_community$typed_svg$TypedSvg$text_, _List_Nil, _List_Nil);
+			}
+		} else {
+			return A2($elm_community$typed_svg$TypedSvg$text_, _List_Nil, _List_Nil);
+		}
+	});
+var $gampleman$elm_visualization$Shape$Generators$line = F2(
+	function (curve, data) {
+		var makeCurves = F2(
+			function (datum, _v3) {
+				var prev = _v3.a;
+				var list = _v3.b;
+				var _v0 = _Utils_Tuple3(prev, datum, list);
+				if (_v0.b.$ === 'Nothing') {
+					var _v1 = _v0.b;
+					var l = _v0.c;
+					return _Utils_Tuple2(false, l);
+				} else {
+					if (!_v0.a) {
+						var point = _v0.b.a;
+						var l = _v0.c;
+						return _Utils_Tuple2(
+							true,
+							A2(
+								$elm$core$List$cons,
+								_List_fromArray(
+									[point]),
+								l));
+					} else {
+						if (_v0.c.b) {
+							var p1 = _v0.b.a;
+							var _v2 = _v0.c;
+							var ps = _v2.a;
+							var l = _v2.b;
+							return _Utils_Tuple2(
+								true,
+								A2(
+									$elm$core$List$cons,
+									A2($elm$core$List$cons, p1, ps),
+									l));
+						} else {
+							var p1 = _v0.b.a;
+							var l = _v0.c;
+							return _Utils_Tuple2(
+								true,
+								A2(
+									$elm$core$List$cons,
+									_List_fromArray(
+										[p1]),
+									l));
+						}
+					}
+				}
+			});
+		return A2(
+			$elm$core$List$map,
+			curve,
+			A3(
+				$elm$core$List$foldr,
+				makeCurves,
+				_Utils_Tuple2(false, _List_Nil),
+				data).b);
+	});
+var $gampleman$elm_visualization$Shape$line = $gampleman$elm_visualization$Shape$Generators$line;
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Constants$lineShapeClassName = 'chart-builder__line';
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Symbol$AnnotationSymbol = function (a) {
+	return {$: 'AnnotationSymbol', a: a};
+};
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Symbol$ChartSymbol = {$: 'ChartSymbol'};
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Symbol$annotationScaler = 1.25;
+var $elm$core$List$maybeCons = F3(
+	function (f, mx, xs) {
+		var _v0 = f(mx);
+		if (_v0.$ === 'Just') {
+			var x = _v0.a;
+			return A2($elm$core$List$cons, x, xs);
+		} else {
+			return xs;
+		}
+	});
+var $elm$core$List$filterMap = F2(
+	function (f, xs) {
+		return A3(
+			$elm$core$List$foldr,
+			$elm$core$List$maybeCons(f),
+			_List_Nil,
+			xs);
+	});
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$getAnnotationPointHint = function (annotations) {
+	return $elm$core$List$head(
+		A2(
+			$elm$core$List$filterMap,
+			function (annotation) {
+				if (annotation.$ === 'AnnotationPointHint') {
+					var p = annotation.a;
+					return $elm$core$Maybe$Just(p);
+				} else {
+					return $elm$core$Maybe$Nothing;
+				}
+			},
+			annotations));
+};
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Line$symbolsToSymbolElements = F2(
+	function (symbolContext, symbols) {
+		return A2(
+			$elm$core$List$map,
+			function (symbol) {
+				var s = $elm_community$typed_svg$TypedSvg$symbol(
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$id(
+							$data_viz_lab$elm_chart_builder$Chart$Internal$Symbol$symbolToId(symbol))
+						]));
+				var _v0 = function () {
+					if (symbolContext.$ === 'AnnotationSymbol') {
+						var scaler_ = symbolContext.a;
+						return _Utils_Tuple2(scaler_, true);
+					} else {
+						return _Utils_Tuple2(1, false);
+					}
+				}();
+				var scaler = _v0.a;
+				var isAnnotationSymbol = _v0.b;
+				var size = function (c) {
+					return scaler * A2($elm$core$Maybe$withDefault, $data_viz_lab$elm_chart_builder$Chart$Internal$Line$defaultSymbolSize, c.size);
+				};
+				switch (symbol.$) {
+					case 'Circle':
+						var c = symbol.a;
+						return isAnnotationSymbol ? $data_viz_lab$elm_chart_builder$Chart$Internal$Symbol$circle_(
+							size(c)) : s(
+							_List_fromArray(
+								[
+									$data_viz_lab$elm_chart_builder$Chart$Internal$Symbol$circle_(
+									size(c))
+								]));
+					case 'Custom':
+						var c = symbol.a;
+						return isAnnotationSymbol ? A2($data_viz_lab$elm_chart_builder$Chart$Internal$Symbol$custom, scaler, c) : s(
+							_List_fromArray(
+								[
+									A2($data_viz_lab$elm_chart_builder$Chart$Internal$Symbol$custom, 1, c)
+								]));
+					case 'Corner':
+						var c = symbol.a;
+						return isAnnotationSymbol ? $data_viz_lab$elm_chart_builder$Chart$Internal$Symbol$corner(
+							size(c)) : s(
+							_List_fromArray(
+								[
+									$data_viz_lab$elm_chart_builder$Chart$Internal$Symbol$corner(
+									size(c))
+								]));
+					case 'Triangle':
+						var c = symbol.a;
+						return isAnnotationSymbol ? $data_viz_lab$elm_chart_builder$Chart$Internal$Symbol$triangle(
+							size(c)) : s(
+							_List_fromArray(
+								[
+									$data_viz_lab$elm_chart_builder$Chart$Internal$Symbol$triangle(
+									size(c))
+								]));
+					default:
+						return s(_List_Nil);
+				}
+			},
+			symbols);
+	});
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Line$drawSymbol = F2(
+	function (config, _v0) {
+		var idx = _v0.idx;
+		var x = _v0.x;
+		var y = _v0.y;
+		var styleStr = _v0.styleStr;
+		var symbolContext = _v0.symbolContext;
+		var conf = $data_viz_lab$elm_chart_builder$Chart$Internal$Type$fromConfig(config);
+		var symbol = A2($data_viz_lab$elm_chart_builder$Chart$Internal$Symbol$getSymbolByIndex, conf.symbols, idx);
+		var annotationPointHint = $data_viz_lab$elm_chart_builder$Chart$Internal$Type$getAnnotationPointHint(conf.annotations);
+		var annotationPointStyle = A2(
+			$elm$core$Maybe$withDefault,
+			_List_Nil,
+			A2($elm$core$Maybe$map, $elm$core$Tuple$second, annotationPointHint));
+		var _v1 = function () {
+			if (symbolContext.$ === 'AnnotationSymbol') {
+				var scaler_ = symbolContext.a;
+				return _Utils_Tuple2(scaler_, true);
+			} else {
+				return _Utils_Tuple2(1, false);
+			}
+		}();
+		var scaler = _v1.a;
+		var isAnnotationSymbol = _v1.b;
+		var st = function (styles) {
+			return $elm_community$typed_svg$TypedSvg$Attributes$style(
+				function (s) {
+					return isAnnotationSymbol ? A2($data_viz_lab$elm_chart_builder$Chart$Internal$Helpers$mergeStyles, annotationPointStyle, s) : s;
+				}(
+					A2($data_viz_lab$elm_chart_builder$Chart$Internal$Helpers$mergeStyles, styles, styleStr)));
+		};
+		var symbolEl = function (s) {
+			return isAnnotationSymbol ? A2(
+				$data_viz_lab$elm_chart_builder$Chart$Internal$Line$symbolsToSymbolElements,
+				symbolContext,
+				_List_fromArray(
+					[s])) : _List_fromArray(
+				[
+					A2(
+					$elm_community$typed_svg$TypedSvg$use,
+					_List_fromArray(
+						[
+							$elm_community$typed_svg$TypedSvg$Attributes$xlinkHref(
+							'#' + $data_viz_lab$elm_chart_builder$Chart$Internal$Symbol$symbolToId(symbol))
+						]),
+					_List_Nil)
+				]);
+		};
+		var circleSize = function (c) {
+			return scaler * A2($elm$core$Maybe$withDefault, $data_viz_lab$elm_chart_builder$Chart$Internal$Line$defaultSymbolSize, c.size);
+		};
+		var size = function (c) {
+			return scaler * A2($elm$core$Maybe$withDefault, $data_viz_lab$elm_chart_builder$Chart$Internal$Line$defaultSymbolSize, c.size);
+		};
+		if ($data_viz_lab$elm_chart_builder$Chart$Internal$Type$showIcons(config)) {
+			switch (symbol.$) {
+				case 'Triangle':
+					var c = symbol.a;
+					return _List_fromArray(
+						[
+							A2(
+							$elm_community$typed_svg$TypedSvg$g,
+							_List_fromArray(
+								[
+									$elm_community$typed_svg$TypedSvg$Attributes$transform(
+									_List_fromArray(
+										[
+											A2(
+											$elm_community$typed_svg$TypedSvg$Types$Translate,
+											x - (size(c) / 2),
+											y - (size(c) / 2))
+										])),
+									$elm_community$typed_svg$TypedSvg$Attributes$class(
+									_List_fromArray(
+										[$data_viz_lab$elm_chart_builder$Chart$Internal$Constants$symbolClassName])),
+									st(c.styles)
+								]),
+							symbolEl(symbol))
+						]);
+				case 'Circle':
+					var c = symbol.a;
+					return _List_fromArray(
+						[
+							A2(
+							$elm_community$typed_svg$TypedSvg$g,
+							_List_fromArray(
+								[
+									$elm_community$typed_svg$TypedSvg$Attributes$transform(
+									_List_fromArray(
+										[
+											A2(
+											$elm_community$typed_svg$TypedSvg$Types$Translate,
+											x - (circleSize(c) / 2),
+											y - (circleSize(c) / 2))
+										])),
+									$elm_community$typed_svg$TypedSvg$Attributes$class(
+									_List_fromArray(
+										[$data_viz_lab$elm_chart_builder$Chart$Internal$Constants$symbolClassName])),
+									st(c.styles)
+								]),
+							symbolEl(symbol))
+						]);
+				case 'Corner':
+					var c = symbol.a;
+					return _List_fromArray(
+						[
+							A2(
+							$elm_community$typed_svg$TypedSvg$g,
+							_List_fromArray(
+								[
+									$elm_community$typed_svg$TypedSvg$Attributes$transform(
+									_List_fromArray(
+										[
+											A2(
+											$elm_community$typed_svg$TypedSvg$Types$Translate,
+											x - (size(c) / 2),
+											y - (size(c) / 2))
+										])),
+									$elm_community$typed_svg$TypedSvg$Attributes$class(
+									_List_fromArray(
+										[$data_viz_lab$elm_chart_builder$Chart$Internal$Constants$symbolClassName])),
+									st(c.styles)
+								]),
+							symbolEl(symbol))
+						]);
+				case 'Custom':
+					var c = symbol.a;
+					return _List_fromArray(
+						[
+							A2(
+							$elm_community$typed_svg$TypedSvg$g,
+							_List_fromArray(
+								[
+									$elm_community$typed_svg$TypedSvg$Attributes$transform(
+									_List_fromArray(
+										[
+											A2($elm_community$typed_svg$TypedSvg$Types$Translate, x, y)
+										])),
+									$elm_community$typed_svg$TypedSvg$Attributes$class(
+									_List_fromArray(
+										[$data_viz_lab$elm_chart_builder$Chart$Internal$Constants$symbolClassName])),
+									st(c.styles)
+								]),
+							symbolEl(symbol))
+						]);
+				default:
+					return _List_Nil;
+			}
+		} else {
+			if (isAnnotationSymbol) {
+				return _List_fromArray(
+					[
+						A2(
+						$elm_community$typed_svg$TypedSvg$g,
+						_List_fromArray(
+							[
+								$elm_community$typed_svg$TypedSvg$Attributes$transform(
+								_List_fromArray(
+									[
+										A2($elm_community$typed_svg$TypedSvg$Types$Translate, x - (($data_viz_lab$elm_chart_builder$Chart$Internal$Line$defaultSymbolSize * scaler) / 2), y - (($data_viz_lab$elm_chart_builder$Chart$Internal$Line$defaultSymbolSize * scaler) / 2))
+									])),
+								$elm_community$typed_svg$TypedSvg$Attributes$class(
+								_List_fromArray(
+									[$data_viz_lab$elm_chart_builder$Chart$Internal$Constants$symbolClassName])),
+								$elm_community$typed_svg$TypedSvg$Attributes$style(
+								A2($data_viz_lab$elm_chart_builder$Chart$Internal$Helpers$mergeStyles, annotationPointStyle, ''))
+							]),
+						symbolEl(
+							$data_viz_lab$elm_chart_builder$Chart$Internal$Symbol$Circle($data_viz_lab$elm_chart_builder$Chart$Internal$Symbol$initialConf)))
+					]);
+			} else {
+				return _List_Nil;
+			}
+		}
+	});
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$isStackedLine = function (c) {
+	var _v0 = c.layout;
+	if (_v0.$ === 'StackedLine') {
+		return true;
+	} else {
+		return false;
+	}
+};
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Helpers$unstack = function (vals) {
+	return $elm$core$List$reverse(
+		A3(
+			$elm$core$List$foldl,
+			F2(
+				function (val, _v0) {
+					var prev = _v0.a;
+					var acc = _v0.b;
+					if (prev.$ === 'Nothing') {
+						return _Utils_Tuple2(
+							$elm$core$Maybe$Just(val),
+							A2($elm$core$List$cons, val, acc));
+					} else {
+						var p = prev.a;
+						return _Utils_Tuple2(
+							$elm$core$Maybe$Just(val),
+							A2($elm$core$List$cons, val - p, acc));
+					}
+				}),
+			_Utils_Tuple2($elm$core$Maybe$Nothing, _List_Nil),
+			vals).b);
+};
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Helpers$stackDeltas = function (vals) {
+	return A2(
+		$elm$core$List$cons,
+		0,
+		A2(
+			$elm$core$List$drop,
+			1,
+			$data_viz_lab$elm_chart_builder$Chart$Internal$Helpers$unstack(vals)));
+};
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Line$getStackDeltas = F2(
+	function (c, data) {
+		return $data_viz_lab$elm_chart_builder$Chart$Internal$Type$isStackedLine(c) ? A2(
+			$elm$core$List$map,
+			function (d) {
+				return A2(
+					$elm$core$List$map,
+					function (dd) {
+						return _Utils_Tuple2(0, dd);
+					},
+					d);
+			},
+			$elm_community$list_extra$List$Extra$transpose(
+				A2(
+					$elm$core$List$map,
+					$data_viz_lab$elm_chart_builder$Chart$Internal$Helpers$stackDeltas,
+					$elm_community$list_extra$List$Extra$transpose(
+						A2(
+							$elm$core$List$map,
+							A2(
+								$elm$core$Basics$composeR,
+								function ($) {
+									return $.points;
+								},
+								$elm$core$List$map($elm$core$Tuple$second)),
+							data))))) : A2(
+			$elm$core$List$map,
+			A2(
+				$elm$core$Basics$composeR,
+				function ($) {
+					return $.points;
+				},
+				$elm$core$List$map(
+					$elm$core$Basics$always(
+						_Utils_Tuple2(0, 0)))),
+			data);
+	});
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Line$symbolGroup = F4(
+	function (config, xScale, yScale, combinedData) {
+		var c = $data_viz_lab$elm_chart_builder$Chart$Internal$Type$fromConfig(config);
+		var colorSymbol = function (idx) {
+			return A3(
+				$data_viz_lab$elm_chart_builder$Chart$Internal$Type$colorStyle,
+				c,
+				$elm$core$Maybe$Just(idx),
+				$elm$core$Maybe$Nothing);
+		};
+		var m = c.margin;
+		var stackDeltas = A2($data_viz_lab$elm_chart_builder$Chart$Internal$Line$getStackDeltas, c, combinedData);
+		var annotationPointHint = A2(
+			$elm$core$Maybe$map,
+			$elm$core$Tuple$first,
+			$data_viz_lab$elm_chart_builder$Chart$Internal$Type$getAnnotationPointHint(c.annotations));
+		var xMatch = function (val) {
+			return A2(
+				$elm$core$Maybe$withDefault,
+				false,
+				A2(
+					$elm$core$Maybe$map,
+					function (a) {
+						return _Utils_eq(a.selection.x, val);
+					},
+					annotationPointHint));
+		};
+		var yMatch = function (val) {
+			return A2(
+				$elm$core$Maybe$withDefault,
+				false,
+				A2(
+					$elm$core$Maybe$map,
+					function (a) {
+						return A2(
+							$elm$core$List$member,
+							val,
+							A2(
+								$elm$core$List$map,
+								function ($) {
+									return $.value;
+								},
+								a.selection.y));
+					},
+					annotationPointHint));
+		};
+		return A2(
+			$elm_community$typed_svg$TypedSvg$g,
+			_List_fromArray(
+				[
+					$elm_community$typed_svg$TypedSvg$Attributes$transform(
+					_List_fromArray(
+						[
+							A2($elm_community$typed_svg$TypedSvg$Types$Translate, m.left, m.top)
+						])),
+					$elm_community$typed_svg$TypedSvg$Attributes$class(
+					_List_fromArray(
+						[$data_viz_lab$elm_chart_builder$Chart$Internal$Constants$componentClassName]))
+				]),
+			$elm$core$List$concat(
+				$elm$core$List$concat(
+					A2(
+						$elm$core$List$indexedMap,
+						F2(
+							function (idx, d) {
+								var deltas = A2(
+									$elm$core$Maybe$withDefault,
+									A2(
+										$elm$core$List$map,
+										$elm$core$Basics$always(
+											_Utils_Tuple2(0, 0)),
+										d.points),
+									A2($elm_community$list_extra$List$Extra$getAt, idx, stackDeltas));
+								return A3(
+									$elm$core$List$map2,
+									F2(
+										function (_v0, _v1) {
+											var delta = _v0.b;
+											var x = _v1.a;
+											var y = _v1.b;
+											var params = {
+												idx: idx,
+												styleStr: colorSymbol(idx),
+												symbolContext: $data_viz_lab$elm_chart_builder$Chart$Internal$Symbol$ChartSymbol,
+												x: A2($gampleman$elm_visualization$Scale$convert, xScale, x),
+												y: A2($gampleman$elm_visualization$Scale$convert, yScale, y)
+											};
+											if (annotationPointHint.$ === 'Just') {
+												return (xMatch(x) && yMatch(y - delta)) ? A2(
+													$data_viz_lab$elm_chart_builder$Chart$Internal$Line$drawSymbol,
+													config,
+													_Utils_update(
+														params,
+														{
+															symbolContext: $data_viz_lab$elm_chart_builder$Chart$Internal$Symbol$AnnotationSymbol($data_viz_lab$elm_chart_builder$Chart$Internal$Symbol$annotationScaler)
+														})) : A2($data_viz_lab$elm_chart_builder$Chart$Internal$Line$drawSymbol, config, params);
+											} else {
+												return A2($data_viz_lab$elm_chart_builder$Chart$Internal$Line$drawSymbol, config, params);
+											}
+										}),
+									deltas,
+									d.points);
+							}),
+						combinedData))));
+	});
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Line$drawContinuousLine = F4(
+	function (config, xScale, yScale, sortedData) {
+		var lineGenerator = function (_v1) {
+			var x = _v1.a;
+			var y = _v1.b;
+			return $elm$core$Maybe$Just(
+				_Utils_Tuple2(
+					A2($gampleman$elm_visualization$Scale$convert, xScale, x),
+					A2($gampleman$elm_visualization$Scale$convert, yScale, y)));
+		};
+		var label = F3(
+			function (i, s, d) {
+				return A2(
+					$elm$core$Maybe$withDefault,
+					A2($elm_community$typed_svg$TypedSvg$text_, _List_Nil, _List_Nil),
+					A2(
+						$elm$core$Maybe$map,
+						A5($data_viz_lab$elm_chart_builder$Chart$Internal$Line$horizontalLabel, config, xScale, yScale, i, s),
+						$elm$core$List$head(
+							$elm$core$List$reverse(d))));
+			});
+		var c = $data_viz_lab$elm_chart_builder$Chart$Internal$Type$fromConfig(config);
+		var line = function (dataGroup) {
+			return A2(
+				$gampleman$elm_visualization$Shape$line,
+				c.curve,
+				A2($elm$core$List$map, lineGenerator, dataGroup.points));
+		};
+		var m = c.margin;
+		var styles = function (idx) {
+			return $elm_community$typed_svg$TypedSvg$Attributes$style(
+				A2(
+					$data_viz_lab$elm_chart_builder$Chart$Internal$Helpers$mergeStyles,
+					c.coreStyle,
+					A2(
+						$data_viz_lab$elm_chart_builder$Chart$Internal$Helpers$mergeStyles,
+						_List_fromArray(
+							[
+								_Utils_Tuple2('fill', 'none')
+							]),
+						A3(
+							$data_viz_lab$elm_chart_builder$Chart$Internal$Type$colorStyle,
+							c,
+							$elm$core$Maybe$Just(idx),
+							$elm$core$Maybe$Nothing))));
+		};
+		return _List_fromArray(
+			[
+				A2(
+				$elm_community$typed_svg$TypedSvg$g,
+				_List_fromArray(
+					[
+						$elm_community$typed_svg$TypedSvg$Attributes$transform(
+						_List_fromArray(
+							[
+								A2($elm_community$typed_svg$TypedSvg$Types$Translate, m.left, m.top)
+							])),
+						$elm_community$typed_svg$TypedSvg$Attributes$class(
+						_List_fromArray(
+							[$data_viz_lab$elm_chart_builder$Chart$Internal$Constants$componentClassName]))
+					]),
+				A2(
+					$elm$core$List$indexedMap,
+					F2(
+						function (idx, d) {
+							return A2(
+								$folkertdev$one_true_path_experiment$Path$element,
+								line(d),
+								_List_fromArray(
+									[
+										$elm_community$typed_svg$TypedSvg$Attributes$class(
+										_List_fromArray(
+											[
+												$data_viz_lab$elm_chart_builder$Chart$Internal$Constants$lineShapeClassName,
+												$data_viz_lab$elm_chart_builder$Chart$Internal$Constants$lineShapeClassName + ('-' + $elm$core$String$fromInt(idx))
+											])),
+										styles(idx)
+									]));
+						}),
+					sortedData)),
+				A2(
+				$elm_community$typed_svg$TypedSvg$g,
+				_List_fromArray(
+					[
+						$elm_community$typed_svg$TypedSvg$Attributes$transform(
+						_List_fromArray(
+							[
+								A2($elm_community$typed_svg$TypedSvg$Types$Translate, m.left, m.top)
+							])),
+						$elm_community$typed_svg$TypedSvg$Attributes$class(
+						_List_fromArray(
+							[$data_viz_lab$elm_chart_builder$Chart$Internal$Constants$componentClassName]))
+					]),
+				A2(
+					$elm$core$List$indexedMap,
+					F2(
+						function (idx, _v0) {
+							var groupLabel = _v0.groupLabel;
+							var points = _v0.points;
+							return A3(label, idx, groupLabel, points);
+						}),
+					sortedData)),
+				A4($data_viz_lab$elm_chart_builder$Chart$Internal$Line$symbolGroup, config, xScale, yScale, sortedData)
+			]);
+	});
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$fromDomainContinuous = function (_v0) {
+	var d = _v0.a;
+	return d;
+};
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$getDomainContinuous = function (config) {
+	return $data_viz_lab$elm_chart_builder$Chart$Internal$Type$fromDomainContinuous(
+		$data_viz_lab$elm_chart_builder$Chart$Internal$Type$fromConfig(config).domainContinuous);
+};
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$getDomainContinuousFromData = F3(
+	function (extent, domain, data) {
+		return $data_viz_lab$elm_chart_builder$Chart$Internal$Type$fromDomainContinuous(
+			$data_viz_lab$elm_chart_builder$Chart$Internal$Type$DomainContinuous(
+				{
+					x: function () {
+						var _v0 = domain.x;
+						if (_v0.$ === 'Just') {
+							return domain.x;
+						} else {
+							return $elm$core$Maybe$Just(
+								function (dd) {
+									return _Utils_Tuple2(
+										A2(
+											$elm$core$Maybe$withDefault,
+											0,
+											$elm$core$List$minimum(dd)),
+										A2(
+											$elm$core$Maybe$withDefault,
+											0,
+											$elm$core$List$maximum(dd)));
+								}(
+									A2(
+										$elm$core$List$map,
+										$elm$core$Tuple$first,
+										$elm$core$List$concat(
+											A2(
+												$elm$core$List$map,
+												function ($) {
+													return $.points;
+												},
+												data)))));
+						}
+					}(),
+					y: function () {
+						var _v1 = domain.y;
+						if (_v1.$ === 'Just') {
+							return domain.y;
+						} else {
+							if (extent.$ === 'Just') {
+								return extent;
+							} else {
+								return $elm$core$Maybe$Just(
+									function (dd) {
+										return _Utils_Tuple2(
+											0,
+											A2(
+												$elm$core$Maybe$withDefault,
+												0,
+												$elm$core$List$maximum(dd)));
+									}(
+										A2(
+											$elm$core$List$map,
+											$elm$core$Tuple$second,
+											$elm$core$List$concat(
+												A2(
+													$elm$core$List$map,
+													function ($) {
+														return $.points;
+													},
+													data)))));
+							}
+						}
+					}()
+				}));
+	});
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$fromDomainTime = function (_v0) {
+	var d = _v0.a;
+	return d;
+};
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$getDomainTime = function (config) {
+	return $data_viz_lab$elm_chart_builder$Chart$Internal$Type$fromDomainTime(
+		$data_viz_lab$elm_chart_builder$Chart$Internal$Type$fromConfig(config).domainTime);
+};
+var $elm$time$Time$Posix = function (a) {
+	return {$: 'Posix', a: a};
+};
+var $elm$time$Time$millisToPosix = $elm$time$Time$Posix;
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$getDomainTimeFromData = F3(
+	function (extent, domain, data) {
+		return $data_viz_lab$elm_chart_builder$Chart$Internal$Type$fromDomainTime(
+			$data_viz_lab$elm_chart_builder$Chart$Internal$Type$DomainTime(
+				{
+					x: function () {
+						var _v0 = domain.x;
+						if (_v0.$ === 'Just') {
+							return domain.x;
+						} else {
+							return $elm$core$Maybe$Just(
+								function (dd) {
+									return _Utils_Tuple2(
+										$elm$time$Time$millisToPosix(
+											A2(
+												$elm$core$Maybe$withDefault,
+												0,
+												$elm$core$List$minimum(dd))),
+										$elm$time$Time$millisToPosix(
+											A2(
+												$elm$core$Maybe$withDefault,
+												0,
+												$elm$core$List$maximum(dd))));
+								}(
+									A2(
+										$elm$core$List$map,
+										$elm$time$Time$posixToMillis,
+										A2(
+											$elm$core$List$map,
+											$elm$core$Tuple$first,
+											$elm$core$List$concat(
+												A2(
+													$elm$core$List$map,
+													function ($) {
+														return $.points;
+													},
+													data))))));
+						}
+					}(),
+					y: function () {
+						var _v1 = domain.y;
+						if (_v1.$ === 'Just') {
+							return domain.y;
+						} else {
+							if (extent.$ === 'Just') {
+								return extent;
+							} else {
+								return $elm$core$Maybe$Just(
+									function (dd) {
+										return _Utils_Tuple2(
+											0,
+											A2(
+												$elm$core$Maybe$withDefault,
+												0,
+												$elm$core$List$maximum(dd)));
+									}(
+										A2(
+											$elm$core$List$map,
+											$elm$core$Tuple$second,
+											$elm$core$List$concat(
+												A2(
+													$elm$core$List$map,
+													function ($) {
+														return $.points;
+													},
+													data)))));
+							}
+						}
+					}()
+				}));
+	});
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Event$HoverAllCriteria = function (a) {
+	return {$: 'HoverAllCriteria', a: a};
+};
+var $elm_community$list_extra$List$Extra$find = F2(
+	function (predicate, list) {
+		find:
+		while (true) {
+			if (!list.b) {
+				return $elm$core$Maybe$Nothing;
+			} else {
+				var first = list.a;
+				var rest = list.b;
+				if (predicate(first)) {
+					return $elm$core$Maybe$Just(first);
+				} else {
+					var $temp$predicate = predicate,
+						$temp$list = rest;
+					predicate = $temp$predicate;
+					list = $temp$list;
+					continue find;
+				}
+			}
+		}
+	});
+var $elm$core$Dict$get = F2(
+	function (targetKey, dict) {
+		get:
+		while (true) {
+			if (dict.$ === 'RBEmpty_elm_builtin') {
+				return $elm$core$Maybe$Nothing;
+			} else {
+				var key = dict.b;
+				var value = dict.c;
+				var left = dict.d;
+				var right = dict.e;
+				var _v1 = A2($elm$core$Basics$compare, targetKey, key);
+				switch (_v1.$) {
+					case 'LT':
+						var $temp$targetKey = targetKey,
+							$temp$dict = left;
+						targetKey = $temp$targetKey;
+						dict = $temp$dict;
+						continue get;
+					case 'EQ':
+						return $elm$core$Maybe$Just(value);
+					default:
+						var $temp$targetKey = targetKey,
+							$temp$dict = right;
+						targetKey = $temp$targetKey;
+						dict = $temp$dict;
+						continue get;
+				}
+			}
+		}
+	});
+var $gampleman$elm_visualization$Scale$invert = F2(
+	function (_v0, value) {
+		var scale = _v0.a;
+		return A3(scale.invert, scale.domain, scale.range, value);
+	});
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Event$nearest = F2(
+	function (numbers, number) {
+		return A3(
+			$elm$core$List$foldr,
+			F2(
+				function (n, _v0) {
+					var delta_ = _v0.a;
+					var value = _v0.b;
+					var delta = $elm$core$Basics$abs(n - number);
+					return (_Utils_cmp(delta, delta_) < 0) ? _Utils_Tuple2(delta, n) : _Utils_Tuple2(delta_, value);
+				}),
+			_Utils_Tuple2(1 / 0, 0),
+			numbers).b;
+	});
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Event$flatDataGroup = function (dataGroup) {
+	return $elm$core$List$concat(
+		A2(
+			$elm$core$List$map,
+			function (d) {
+				return A2(
+					$elm$core$List$map,
+					function (p) {
+						return {groupLabel: d.groupLabel, point: p};
+					},
+					d.points);
+			},
+			dataGroup));
+};
+var $elm$core$Dict$member = F2(
+	function (key, dict) {
+		var _v0 = A2($elm$core$Dict$get, key, dict);
+		if (_v0.$ === 'Just') {
+			return true;
+		} else {
+			return false;
+		}
+	});
+var $elm$core$Dict$getMin = function (dict) {
+	getMin:
+	while (true) {
+		if ((dict.$ === 'RBNode_elm_builtin') && (dict.d.$ === 'RBNode_elm_builtin')) {
+			var left = dict.d;
+			var $temp$dict = left;
+			dict = $temp$dict;
+			continue getMin;
+		} else {
+			return dict;
+		}
+	}
+};
+var $elm$core$Dict$moveRedLeft = function (dict) {
+	if (((dict.$ === 'RBNode_elm_builtin') && (dict.d.$ === 'RBNode_elm_builtin')) && (dict.e.$ === 'RBNode_elm_builtin')) {
+		if ((dict.e.d.$ === 'RBNode_elm_builtin') && (dict.e.d.a.$ === 'Red')) {
+			var clr = dict.a;
+			var k = dict.b;
+			var v = dict.c;
+			var _v1 = dict.d;
+			var lClr = _v1.a;
+			var lK = _v1.b;
+			var lV = _v1.c;
+			var lLeft = _v1.d;
+			var lRight = _v1.e;
+			var _v2 = dict.e;
+			var rClr = _v2.a;
+			var rK = _v2.b;
+			var rV = _v2.c;
+			var rLeft = _v2.d;
+			var _v3 = rLeft.a;
+			var rlK = rLeft.b;
+			var rlV = rLeft.c;
+			var rlL = rLeft.d;
+			var rlR = rLeft.e;
+			var rRight = _v2.e;
+			return A5(
+				$elm$core$Dict$RBNode_elm_builtin,
+				$elm$core$Dict$Red,
+				rlK,
+				rlV,
+				A5(
+					$elm$core$Dict$RBNode_elm_builtin,
+					$elm$core$Dict$Black,
+					k,
+					v,
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, lK, lV, lLeft, lRight),
+					rlL),
+				A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, rK, rV, rlR, rRight));
+		} else {
+			var clr = dict.a;
+			var k = dict.b;
+			var v = dict.c;
+			var _v4 = dict.d;
+			var lClr = _v4.a;
+			var lK = _v4.b;
+			var lV = _v4.c;
+			var lLeft = _v4.d;
+			var lRight = _v4.e;
+			var _v5 = dict.e;
+			var rClr = _v5.a;
+			var rK = _v5.b;
+			var rV = _v5.c;
+			var rLeft = _v5.d;
+			var rRight = _v5.e;
+			if (clr.$ === 'Black') {
+				return A5(
+					$elm$core$Dict$RBNode_elm_builtin,
+					$elm$core$Dict$Black,
+					k,
+					v,
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, lK, lV, lLeft, lRight),
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, rK, rV, rLeft, rRight));
+			} else {
+				return A5(
+					$elm$core$Dict$RBNode_elm_builtin,
+					$elm$core$Dict$Black,
+					k,
+					v,
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, lK, lV, lLeft, lRight),
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, rK, rV, rLeft, rRight));
+			}
+		}
+	} else {
+		return dict;
+	}
+};
+var $elm$core$Dict$moveRedRight = function (dict) {
+	if (((dict.$ === 'RBNode_elm_builtin') && (dict.d.$ === 'RBNode_elm_builtin')) && (dict.e.$ === 'RBNode_elm_builtin')) {
+		if ((dict.d.d.$ === 'RBNode_elm_builtin') && (dict.d.d.a.$ === 'Red')) {
+			var clr = dict.a;
+			var k = dict.b;
+			var v = dict.c;
+			var _v1 = dict.d;
+			var lClr = _v1.a;
+			var lK = _v1.b;
+			var lV = _v1.c;
+			var _v2 = _v1.d;
+			var _v3 = _v2.a;
+			var llK = _v2.b;
+			var llV = _v2.c;
+			var llLeft = _v2.d;
+			var llRight = _v2.e;
+			var lRight = _v1.e;
+			var _v4 = dict.e;
+			var rClr = _v4.a;
+			var rK = _v4.b;
+			var rV = _v4.c;
+			var rLeft = _v4.d;
+			var rRight = _v4.e;
+			return A5(
+				$elm$core$Dict$RBNode_elm_builtin,
+				$elm$core$Dict$Red,
+				lK,
+				lV,
+				A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, llK, llV, llLeft, llRight),
+				A5(
+					$elm$core$Dict$RBNode_elm_builtin,
+					$elm$core$Dict$Black,
+					k,
+					v,
+					lRight,
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, rK, rV, rLeft, rRight)));
+		} else {
+			var clr = dict.a;
+			var k = dict.b;
+			var v = dict.c;
+			var _v5 = dict.d;
+			var lClr = _v5.a;
+			var lK = _v5.b;
+			var lV = _v5.c;
+			var lLeft = _v5.d;
+			var lRight = _v5.e;
+			var _v6 = dict.e;
+			var rClr = _v6.a;
+			var rK = _v6.b;
+			var rV = _v6.c;
+			var rLeft = _v6.d;
+			var rRight = _v6.e;
+			if (clr.$ === 'Black') {
+				return A5(
+					$elm$core$Dict$RBNode_elm_builtin,
+					$elm$core$Dict$Black,
+					k,
+					v,
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, lK, lV, lLeft, lRight),
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, rK, rV, rLeft, rRight));
+			} else {
+				return A5(
+					$elm$core$Dict$RBNode_elm_builtin,
+					$elm$core$Dict$Black,
+					k,
+					v,
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, lK, lV, lLeft, lRight),
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, rK, rV, rLeft, rRight));
+			}
+		}
+	} else {
+		return dict;
+	}
+};
+var $elm$core$Dict$removeHelpPrepEQGT = F7(
+	function (targetKey, dict, color, key, value, left, right) {
+		if ((left.$ === 'RBNode_elm_builtin') && (left.a.$ === 'Red')) {
+			var _v1 = left.a;
+			var lK = left.b;
+			var lV = left.c;
+			var lLeft = left.d;
+			var lRight = left.e;
+			return A5(
+				$elm$core$Dict$RBNode_elm_builtin,
+				color,
+				lK,
+				lV,
+				lLeft,
+				A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, key, value, lRight, right));
+		} else {
+			_v2$2:
+			while (true) {
+				if ((right.$ === 'RBNode_elm_builtin') && (right.a.$ === 'Black')) {
+					if (right.d.$ === 'RBNode_elm_builtin') {
+						if (right.d.a.$ === 'Black') {
+							var _v3 = right.a;
+							var _v4 = right.d;
+							var _v5 = _v4.a;
+							return $elm$core$Dict$moveRedRight(dict);
+						} else {
+							break _v2$2;
+						}
+					} else {
+						var _v6 = right.a;
+						var _v7 = right.d;
+						return $elm$core$Dict$moveRedRight(dict);
+					}
+				} else {
+					break _v2$2;
+				}
+			}
+			return dict;
+		}
+	});
+var $elm$core$Dict$removeMin = function (dict) {
+	if ((dict.$ === 'RBNode_elm_builtin') && (dict.d.$ === 'RBNode_elm_builtin')) {
+		var color = dict.a;
+		var key = dict.b;
+		var value = dict.c;
+		var left = dict.d;
+		var lColor = left.a;
+		var lLeft = left.d;
+		var right = dict.e;
+		if (lColor.$ === 'Black') {
+			if ((lLeft.$ === 'RBNode_elm_builtin') && (lLeft.a.$ === 'Red')) {
+				var _v3 = lLeft.a;
+				return A5(
+					$elm$core$Dict$RBNode_elm_builtin,
+					color,
+					key,
+					value,
+					$elm$core$Dict$removeMin(left),
+					right);
+			} else {
+				var _v4 = $elm$core$Dict$moveRedLeft(dict);
+				if (_v4.$ === 'RBNode_elm_builtin') {
+					var nColor = _v4.a;
+					var nKey = _v4.b;
+					var nValue = _v4.c;
+					var nLeft = _v4.d;
+					var nRight = _v4.e;
+					return A5(
+						$elm$core$Dict$balance,
+						nColor,
+						nKey,
+						nValue,
+						$elm$core$Dict$removeMin(nLeft),
+						nRight);
+				} else {
+					return $elm$core$Dict$RBEmpty_elm_builtin;
+				}
+			}
+		} else {
+			return A5(
+				$elm$core$Dict$RBNode_elm_builtin,
+				color,
+				key,
+				value,
+				$elm$core$Dict$removeMin(left),
+				right);
+		}
+	} else {
+		return $elm$core$Dict$RBEmpty_elm_builtin;
+	}
+};
+var $elm$core$Dict$removeHelp = F2(
+	function (targetKey, dict) {
+		if (dict.$ === 'RBEmpty_elm_builtin') {
+			return $elm$core$Dict$RBEmpty_elm_builtin;
+		} else {
+			var color = dict.a;
+			var key = dict.b;
+			var value = dict.c;
+			var left = dict.d;
+			var right = dict.e;
+			if (_Utils_cmp(targetKey, key) < 0) {
+				if ((left.$ === 'RBNode_elm_builtin') && (left.a.$ === 'Black')) {
+					var _v4 = left.a;
+					var lLeft = left.d;
+					if ((lLeft.$ === 'RBNode_elm_builtin') && (lLeft.a.$ === 'Red')) {
+						var _v6 = lLeft.a;
+						return A5(
+							$elm$core$Dict$RBNode_elm_builtin,
+							color,
+							key,
+							value,
+							A2($elm$core$Dict$removeHelp, targetKey, left),
+							right);
+					} else {
+						var _v7 = $elm$core$Dict$moveRedLeft(dict);
+						if (_v7.$ === 'RBNode_elm_builtin') {
+							var nColor = _v7.a;
+							var nKey = _v7.b;
+							var nValue = _v7.c;
+							var nLeft = _v7.d;
+							var nRight = _v7.e;
+							return A5(
+								$elm$core$Dict$balance,
+								nColor,
+								nKey,
+								nValue,
+								A2($elm$core$Dict$removeHelp, targetKey, nLeft),
+								nRight);
+						} else {
+							return $elm$core$Dict$RBEmpty_elm_builtin;
+						}
+					}
+				} else {
+					return A5(
+						$elm$core$Dict$RBNode_elm_builtin,
+						color,
+						key,
+						value,
+						A2($elm$core$Dict$removeHelp, targetKey, left),
+						right);
+				}
+			} else {
+				return A2(
+					$elm$core$Dict$removeHelpEQGT,
+					targetKey,
+					A7($elm$core$Dict$removeHelpPrepEQGT, targetKey, dict, color, key, value, left, right));
+			}
+		}
+	});
+var $elm$core$Dict$removeHelpEQGT = F2(
+	function (targetKey, dict) {
+		if (dict.$ === 'RBNode_elm_builtin') {
+			var color = dict.a;
+			var key = dict.b;
+			var value = dict.c;
+			var left = dict.d;
+			var right = dict.e;
+			if (_Utils_eq(targetKey, key)) {
+				var _v1 = $elm$core$Dict$getMin(right);
+				if (_v1.$ === 'RBNode_elm_builtin') {
+					var minKey = _v1.b;
+					var minValue = _v1.c;
+					return A5(
+						$elm$core$Dict$balance,
+						color,
+						minKey,
+						minValue,
+						left,
+						$elm$core$Dict$removeMin(right));
+				} else {
+					return $elm$core$Dict$RBEmpty_elm_builtin;
+				}
+			} else {
+				return A5(
+					$elm$core$Dict$balance,
+					color,
+					key,
+					value,
+					left,
+					A2($elm$core$Dict$removeHelp, targetKey, right));
+			}
+		} else {
+			return $elm$core$Dict$RBEmpty_elm_builtin;
+		}
+	});
+var $elm$core$Dict$remove = F2(
+	function (key, dict) {
+		var _v0 = A2($elm$core$Dict$removeHelp, key, dict);
+		if ((_v0.$ === 'RBNode_elm_builtin') && (_v0.a.$ === 'Red')) {
+			var _v1 = _v0.a;
+			var k = _v0.b;
+			var v = _v0.c;
+			var l = _v0.d;
+			var r = _v0.e;
+			return A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, k, v, l, r);
+		} else {
+			var x = _v0;
+			return x;
+		}
+	});
+var $elm$core$Dict$update = F3(
+	function (targetKey, alter, dictionary) {
+		var _v0 = alter(
+			A2($elm$core$Dict$get, targetKey, dictionary));
+		if (_v0.$ === 'Just') {
+			var value = _v0.a;
+			return A3($elm$core$Dict$insert, targetKey, value, dictionary);
+		} else {
+			return A2($elm$core$Dict$remove, targetKey, dictionary);
+		}
+	});
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Event$transposeDataGroup = function (dataGroup) {
+	return A3(
+		$elm$core$List$foldr,
+		F2(
+			function (_v0, acc) {
+				var groupLabel = _v0.groupLabel;
+				var point = _v0.point;
+				var k = $elm$core$String$fromFloat(point.a);
+				return A2($elm$core$Dict$member, k, acc) ? A3(
+					$elm$core$Dict$update,
+					k,
+					function (values) {
+						return A2(
+							$elm$core$Maybe$map,
+							function (v) {
+								return A2(
+									$elm$core$List$cons,
+									{groupLabel: groupLabel, point: point},
+									v);
+							},
+							values);
+					},
+					acc) : A3(
+					$elm$core$Dict$insert,
+					k,
+					_List_fromArray(
+						[
+							{groupLabel: groupLabel, point: point}
+						]),
+					acc);
+			}),
+		$elm$core$Dict$empty,
+		$data_viz_lab$elm_chart_builder$Chart$Internal$Event$flatDataGroup(dataGroup));
+};
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Event$vectorLength = function (_v0) {
+	var eventX = _v0.eventX;
+	var eventY = _v0.eventY;
+	var dataX = _v0.dataX;
+	var dataY = _v0.dataY;
+	return $elm$core$Basics$sqrt(
+		A2($elm$core$Basics$pow, eventX - dataX, 2) + A2($elm$core$Basics$pow, eventY - dataY, 2));
+};
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Event$getWithin = F5(
+	function (_v0, data, _v1, criteria, eventData) {
+		var margin = _v0.margin;
+		var width = _v0.width;
+		var height = _v0.height;
+		var xScale = _v1.a;
+		var yScale = _v1.b;
+		var yPosition = (eventData.pageY - eventData.boundingClientRect.top) - margin.top;
+		var xPosition = (eventData.pageX - eventData.boundingClientRect.left) - margin.left;
+		var dataTransposed = $data_viz_lab$elm_chart_builder$Chart$Internal$Event$transposeDataGroup(data);
+		var keys = $elm$core$Dict$keys(dataTransposed);
+		var _v2 = _Utils_Tuple2(
+			A2($gampleman$elm_visualization$Scale$invert, xScale, xPosition),
+			A2($gampleman$elm_visualization$Scale$invert, yScale, yPosition));
+		var xValue = _v2.a;
+		var yValue = _v2.b;
+		var nearestKey = $elm$core$String$fromFloat(
+			A2(
+				$data_viz_lab$elm_chart_builder$Chart$Internal$Event$nearest,
+				A2(
+					$elm$core$List$filterMap,
+					$elm$core$Basics$identity,
+					A2($elm$core$List$map, $elm$core$String$toFloat, keys)),
+				xValue));
+		var nearestGroup = A2(
+			$elm$core$Maybe$withDefault,
+			_List_Nil,
+			A2($elm$core$Dict$get, nearestKey, dataTransposed));
+		var vectorDistances = A2(
+			$elm$core$List$map,
+			A2(
+				$elm$core$Basics$composeR,
+				function ($) {
+					return $.point;
+				},
+				function (_v11) {
+					var x = _v11.a;
+					var y = _v11.b;
+					return _Utils_Tuple2(
+						$data_viz_lab$elm_chart_builder$Chart$Internal$Event$vectorLength(
+							{
+								dataX: A2($gampleman$elm_visualization$Scale$convert, xScale, x),
+								dataY: A2($gampleman$elm_visualization$Scale$convert, yScale, y),
+								eventX: xPosition,
+								eventY: yPosition
+							}),
+						_Utils_Tuple2(x, y));
+				}),
+			nearestGroup);
+		var nearestPointInGroup = $elm$core$List$head(
+			A2(
+				$elm$core$List$sortBy,
+				function (_v10) {
+					var distance = _v10.a;
+					return distance;
+				},
+				vectorDistances));
+		if (criteria.$ === 'HoverOneCriteria') {
+			var tolerance = criteria.a;
+			return A2(
+				$elm$core$Maybe$map,
+				function (_v7) {
+					var groupLabel = _v7.groupLabel;
+					var point = _v7.point;
+					return {
+						boundingClientRect: eventData.boundingClientRect,
+						selection: {
+							x: point.a,
+							y: _List_fromArray(
+								[
+									{groupLabel: groupLabel, value: point.b}
+								])
+						},
+						xPosition: A2($gampleman$elm_visualization$Scale$convert, xScale, point.a),
+						yPosition: A2($gampleman$elm_visualization$Scale$convert, yScale, point.b)
+					};
+				},
+				A2(
+					$elm_community$list_extra$List$Extra$find,
+					function (_v4) {
+						var point = _v4.point;
+						if (nearestPointInGroup.$ === 'Just') {
+							var _v6 = nearestPointInGroup.a;
+							var d = _v6.a;
+							var p = _v6.b;
+							return _Utils_eq(p, point) && (_Utils_cmp(d, tolerance) < 0);
+						} else {
+							return false;
+						}
+					},
+					nearestGroup));
+		} else {
+			return A3(
+				$elm$core$List$foldr,
+				F2(
+					function (_v8, acc) {
+						var groupLabel = _v8.groupLabel;
+						var point = _v8.point;
+						if (acc.$ === 'Nothing') {
+							return $elm$core$Maybe$Just(
+								{
+									boundingClientRect: eventData.boundingClientRect,
+									selection: {
+										x: point.a,
+										y: _List_fromArray(
+											[
+												{groupLabel: groupLabel, value: point.b}
+											])
+									},
+									xPosition: A2($gampleman$elm_visualization$Scale$convert, xScale, point.a),
+									yPosition: A2($gampleman$elm_visualization$Scale$convert, yScale, point.b)
+								});
+						} else {
+							var acc_ = acc.a;
+							var newY = A2(
+								$elm$core$List$cons,
+								{groupLabel: groupLabel, value: point.b},
+								acc_.selection.y);
+							return $elm$core$Maybe$Just(
+								_Utils_update(
+									acc_,
+									{
+										selection: {x: point.a, y: newY}
+									}));
+						}
+					}),
+				$elm$core$Maybe$Nothing,
+				nearestGroup);
+		}
+	});
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Event$EventData = F3(
+	function (pageX, pageY, boundingClientRect) {
+		return {boundingClientRect: boundingClientRect, pageX: pageX, pageY: pageY};
+	});
+var $elm$json$Json$Decode$float = _Json_decodeFloat;
+var $elm$json$Json$Decode$map3 = _Json_map3;
+var $debois$elm_dom$DOM$offsetHeight = A2($elm$json$Json$Decode$field, 'offsetHeight', $elm$json$Json$Decode$float);
+var $debois$elm_dom$DOM$offsetWidth = A2($elm$json$Json$Decode$field, 'offsetWidth', $elm$json$Json$Decode$float);
+var $elm$json$Json$Decode$map4 = _Json_map4;
+var $debois$elm_dom$DOM$offsetLeft = A2($elm$json$Json$Decode$field, 'offsetLeft', $elm$json$Json$Decode$float);
+var $elm$json$Json$Decode$null = _Json_decodeNull;
+var $elm$json$Json$Decode$oneOf = _Json_oneOf;
+var $debois$elm_dom$DOM$offsetParent = F2(
+	function (x, decoder) {
+		return $elm$json$Json$Decode$oneOf(
+			_List_fromArray(
+				[
+					A2(
+					$elm$json$Json$Decode$field,
+					'offsetParent',
+					$elm$json$Json$Decode$null(x)),
+					A2($elm$json$Json$Decode$field, 'offsetParent', decoder)
+				]));
+	});
+var $debois$elm_dom$DOM$offsetTop = A2($elm$json$Json$Decode$field, 'offsetTop', $elm$json$Json$Decode$float);
+var $debois$elm_dom$DOM$scrollLeft = A2($elm$json$Json$Decode$field, 'scrollLeft', $elm$json$Json$Decode$float);
+var $debois$elm_dom$DOM$scrollTop = A2($elm$json$Json$Decode$field, 'scrollTop', $elm$json$Json$Decode$float);
+var $debois$elm_dom$DOM$position = F2(
+	function (x, y) {
+		return A2(
+			$elm$json$Json$Decode$andThen,
+			function (_v0) {
+				var x_ = _v0.a;
+				var y_ = _v0.b;
+				return A2(
+					$debois$elm_dom$DOM$offsetParent,
+					_Utils_Tuple2(x_, y_),
+					A2($debois$elm_dom$DOM$position, x_, y_));
+			},
+			A5(
+				$elm$json$Json$Decode$map4,
+				F4(
+					function (scrollLeftP, scrollTopP, offsetLeftP, offsetTopP) {
+						return _Utils_Tuple2((x + offsetLeftP) - scrollLeftP, (y + offsetTopP) - scrollTopP);
+					}),
+				$debois$elm_dom$DOM$scrollLeft,
+				$debois$elm_dom$DOM$scrollTop,
+				$debois$elm_dom$DOM$offsetLeft,
+				$debois$elm_dom$DOM$offsetTop));
+	});
+var $debois$elm_dom$DOM$boundingClientRect = A4(
+	$elm$json$Json$Decode$map3,
+	F3(
+		function (_v0, width, height) {
+			var x = _v0.a;
+			var y = _v0.b;
+			return {height: height, left: x, top: y, width: width};
+		}),
+	A2($debois$elm_dom$DOM$position, 0, 0),
+	$debois$elm_dom$DOM$offsetWidth,
+	$debois$elm_dom$DOM$offsetHeight);
+var $elm$json$Json$Decode$lazy = function (thunk) {
+	return A2(
+		$elm$json$Json$Decode$andThen,
+		thunk,
+		$elm$json$Json$Decode$succeed(_Utils_Tuple0));
+};
+var $debois$elm_dom$DOM$parentElement = function (decoder) {
+	return A2($elm$json$Json$Decode$field, 'parentElement', decoder);
+};
+function $data_viz_lab$elm_chart_builder$Chart$Internal$Event$cyclic$position() {
+	return $elm$json$Json$Decode$oneOf(
+		_List_fromArray(
+			[
+				$debois$elm_dom$DOM$boundingClientRect,
+				$elm$json$Json$Decode$lazy(
+				function (_v0) {
+					return $debois$elm_dom$DOM$parentElement(
+						$data_viz_lab$elm_chart_builder$Chart$Internal$Event$cyclic$position());
+				})
+			]));
+}
+try {
+	var $data_viz_lab$elm_chart_builder$Chart$Internal$Event$position = $data_viz_lab$elm_chart_builder$Chart$Internal$Event$cyclic$position();
+	$data_viz_lab$elm_chart_builder$Chart$Internal$Event$cyclic$position = function () {
+		return $data_viz_lab$elm_chart_builder$Chart$Internal$Event$position;
+	};
+} catch ($) {
+	throw 'Some top-level definitions from `Chart.Internal.Event` are causing infinite recursion:\n\n  ┌─────┐\n  │    position\n  └─────┘\n\nThese errors are very tricky, so read https://elm-lang.org/0.19.1/bad-recursion to learn how to fix it!';}
+var $debois$elm_dom$DOM$target = function (decoder) {
+	return A2($elm$json$Json$Decode$field, 'target', decoder);
+};
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Event$mouseEventDecoder = A4(
+	$elm$json$Json$Decode$map3,
+	$data_viz_lab$elm_chart_builder$Chart$Internal$Event$EventData,
+	A2($elm$json$Json$Decode$field, 'pageX', $elm$json$Json$Decode$float),
+	A2($elm$json$Json$Decode$field, 'pageY', $elm$json$Json$Decode$float),
+	$debois$elm_dom$DOM$target($data_viz_lab$elm_chart_builder$Chart$Internal$Event$position));
+var $elm$virtual_dom$VirtualDom$Normal = function (a) {
+	return {$: 'Normal', a: a};
+};
+var $elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
+var $elm$html$Html$Events$on = F2(
+	function (event, decoder) {
+		return A2(
+			$elm$virtual_dom$VirtualDom$on,
+			event,
+			$elm$virtual_dom$VirtualDom$Normal(decoder));
+	});
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Event$onEvent = F6(
+	function (stringEvent, searchCriteria, config, data, scales, message) {
+		return A2(
+			$elm$html$Html$Events$on,
+			stringEvent,
+			A2(
+				$elm$json$Json$Decode$map,
+				message,
+				A2(
+					$elm$json$Json$Decode$andThen,
+					function (e) {
+						return $elm$json$Json$Decode$succeed(
+							A5($data_viz_lab$elm_chart_builder$Chart$Internal$Event$getWithin, config, data, scales, searchCriteria, e));
+					},
+					$data_viz_lab$elm_chart_builder$Chart$Internal$Event$mouseEventDecoder)));
+	});
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Event$onMouseLeave = function (message) {
+	return A2(
+		$elm$html$Html$Events$on,
+		'mouseleave',
+		$elm$json$Json$Decode$succeed(
+			message($elm$core$Maybe$Nothing)));
+};
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Event$hoverAll = F4(
+	function (config, data, scales, msg) {
+		return _List_fromArray(
+			[
+				A6(
+				$data_viz_lab$elm_chart_builder$Chart$Internal$Event$onEvent,
+				'mousemove',
+				$data_viz_lab$elm_chart_builder$Chart$Internal$Event$HoverAllCriteria(30),
+				config,
+				data,
+				scales,
+				msg),
+				A6(
+				$data_viz_lab$elm_chart_builder$Chart$Internal$Event$onEvent,
+				'touchstart',
+				$data_viz_lab$elm_chart_builder$Chart$Internal$Event$HoverAllCriteria(100),
+				config,
+				data,
+				scales,
+				msg),
+				A6(
+				$data_viz_lab$elm_chart_builder$Chart$Internal$Event$onEvent,
+				'touchmove',
+				$data_viz_lab$elm_chart_builder$Chart$Internal$Event$HoverAllCriteria(100),
+				config,
+				data,
+				scales,
+				msg),
+				$data_viz_lab$elm_chart_builder$Chart$Internal$Event$onMouseLeave(msg)
+			]);
+	});
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Event$HoverOneCriteria = function (a) {
+	return {$: 'HoverOneCriteria', a: a};
+};
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Event$hoverOne = F4(
+	function (config, data, scales, msg) {
+		return _List_fromArray(
+			[
+				A6(
+				$data_viz_lab$elm_chart_builder$Chart$Internal$Event$onEvent,
+				'mousemove',
+				$data_viz_lab$elm_chart_builder$Chart$Internal$Event$HoverOneCriteria(30),
+				config,
+				data,
+				scales,
+				msg),
+				A6(
+				$data_viz_lab$elm_chart_builder$Chart$Internal$Event$onEvent,
+				'touchstart',
+				$data_viz_lab$elm_chart_builder$Chart$Internal$Event$HoverOneCriteria(100),
+				config,
+				data,
+				scales,
+				msg),
+				A6(
+				$data_viz_lab$elm_chart_builder$Chart$Internal$Event$onEvent,
+				'touchmove',
+				$data_viz_lab$elm_chart_builder$Chart$Internal$Event$HoverOneCriteria(100),
+				config,
+				data,
+				scales,
+				msg),
+				$data_viz_lab$elm_chart_builder$Chart$Internal$Event$onMouseLeave(msg)
+			]);
+	});
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Constants$lineClassName = 'chart-builder--line';
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Line$symbolElements = function (config) {
+	var c = $data_viz_lab$elm_chart_builder$Chart$Internal$Type$fromConfig(config);
+	var _v0 = c.layout;
+	switch (_v0.$) {
+		case 'StackedLine':
+			return $data_viz_lab$elm_chart_builder$Chart$Internal$Type$showIcons(config) ? A2($data_viz_lab$elm_chart_builder$Chart$Internal$Line$symbolsToSymbolElements, $data_viz_lab$elm_chart_builder$Chart$Internal$Symbol$ChartSymbol, c.symbols) : _List_Nil;
+		case 'GroupedLine':
+			return $data_viz_lab$elm_chart_builder$Chart$Internal$Type$showIcons(config) ? A2($data_viz_lab$elm_chart_builder$Chart$Internal$Line$symbolsToSymbolElements, $data_viz_lab$elm_chart_builder$Chart$Internal$Symbol$ChartSymbol, c.symbols) : _List_Nil;
+		default:
+			return _List_Nil;
+	}
+};
+var $data_viz_lab$elm_chart_builder$Chart$Internal$TableHelpers$dataThreshold = function (data) {
+	return $elm$core$Basics$floor(
+		A2(
+			$gampleman$elm_visualization$Scale$convert,
+			$gampleman$elm_visualization$Scale$clamp(
+				A2(
+					$gampleman$elm_visualization$Scale$linear,
+					_Utils_Tuple2(6, 25),
+					_Utils_Tuple2(0, 500))),
+			$elm$core$List$length(data)));
+};
+var $RalfNorthman$elm_lttb$LTTB$Point = F2(
+	function (x, y) {
+		return {x: x, y: y};
+	});
+var $elm_community$list_extra$List$Extra$maximumBy = F2(
+	function (f, ls) {
+		var maxBy = F2(
+			function (x, _v1) {
+				var y = _v1.a;
+				var fy = _v1.b;
+				var fx = f(x);
+				return (_Utils_cmp(fx, fy) > 0) ? _Utils_Tuple2(x, fx) : _Utils_Tuple2(y, fy);
+			});
+		if (ls.b) {
+			if (!ls.b.b) {
+				var l_ = ls.a;
+				return $elm$core$Maybe$Just(l_);
+			} else {
+				var l_ = ls.a;
+				var ls_ = ls.b;
+				return $elm$core$Maybe$Just(
+					A3(
+						$elm$core$List$foldl,
+						maxBy,
+						_Utils_Tuple2(
+							l_,
+							f(l_)),
+						ls_).a);
+			}
+		} else {
+			return $elm$core$Maybe$Nothing;
+		}
+	});
+var $elm_community$list_extra$List$Extra$splitAt = F2(
+	function (n, xs) {
+		return _Utils_Tuple2(
+			A2($elm$core$List$take, n, xs),
+			A2($elm$core$List$drop, n, xs));
+	});
+var $elm_community$list_extra$List$Extra$groupsOfVarying_ = F3(
+	function (listOflengths, list, accu) {
+		groupsOfVarying_:
+		while (true) {
+			var _v0 = _Utils_Tuple2(listOflengths, list);
+			if (_v0.a.b && _v0.b.b) {
+				var _v1 = _v0.a;
+				var length = _v1.a;
+				var tailLengths = _v1.b;
+				var _v2 = _v0.b;
+				var _v3 = A2($elm_community$list_extra$List$Extra$splitAt, length, list);
+				var head = _v3.a;
+				var tail = _v3.b;
+				var $temp$listOflengths = tailLengths,
+					$temp$list = tail,
+					$temp$accu = A2($elm$core$List$cons, head, accu);
+				listOflengths = $temp$listOflengths;
+				list = $temp$list;
+				accu = $temp$accu;
+				continue groupsOfVarying_;
+			} else {
+				return $elm$core$List$reverse(accu);
+			}
+		}
+	});
+var $elm_community$list_extra$List$Extra$groupsOfVarying = F2(
+	function (listOflengths, list) {
+		return A3($elm_community$list_extra$List$Extra$groupsOfVarying_, listOflengths, list, _List_Nil);
+	});
+var $RalfNorthman$elm_lttb$LTTB$splitIn = F2(
+	function (nParts, list) {
+		if (!nParts) {
+			return _List_fromArray(
+				[_List_Nil]);
+		} else {
+			if (nParts < 0) {
+				return _List_Nil;
+			} else {
+				if (nParts === 1) {
+					return _List_fromArray(
+						[list]);
+				} else {
+					var listLength = $elm$core$List$length(list);
+					var nLargerChunks = listLength % nParts;
+					var baseChunkSize = (listLength / nParts) | 0;
+					var partLengths = _Utils_ap(
+						A2($elm$core$List$repeat, nLargerChunks, baseChunkSize + 1),
+						A2($elm$core$List$repeat, listLength - nLargerChunks, baseChunkSize));
+					return A2($elm_community$list_extra$List$Extra$groupsOfVarying, partLengths, list);
+				}
+			}
+		}
+	});
+var $RalfNorthman$elm_lttb$LTTB$sumBy = F2(
+	function (fn, list) {
+		return A3(
+			$elm$core$List$foldl,
+			F2(
+				function (item, total) {
+					return total + fn(item);
+				}),
+			0,
+			list);
+	});
+var $elm_community$list_extra$List$Extra$unconsLast = function (list) {
+	var _v0 = $elm$core$List$reverse(list);
+	if (!_v0.b) {
+		return $elm$core$Maybe$Nothing;
+	} else {
+		var last_ = _v0.a;
+		var rest = _v0.b;
+		return $elm$core$Maybe$Just(
+			_Utils_Tuple2(
+				last_,
+				$elm$core$List$reverse(rest)));
+	}
+};
+var $RalfNorthman$elm_lttb$LTTB$downsample = function (input) {
+	var y = input.yGetter;
+	var x = input.xGetter;
+	var triangleArea = F3(
+		function (a, b, c) {
+			return $elm$core$Basics$abs(
+				((a.x * (y(b) - c.y)) + (x(b) * (c.y - a.y))) + (c.x * (a.y - y(b))));
+		});
+	var toPoint = function (inp) {
+		return A2(
+			$RalfNorthman$elm_lttb$LTTB$Point,
+			x(inp),
+			y(inp));
+	};
+	var listAverage = function (list_) {
+		var length = $elm$core$List$length(list_);
+		var avg = F2(
+			function (list, acc) {
+				return A2($RalfNorthman$elm_lttb$LTTB$sumBy, acc, list) / length;
+			});
+		return A2(
+			$RalfNorthman$elm_lttb$LTTB$Point,
+			A2(avg, list_, x),
+			A2(avg, list_, y));
+	};
+	var execute = function (bucketList) {
+		var iter = F4(
+			function (previous, current, next, rest) {
+				var previousPoint = toPoint(previous);
+				var nextAverage = listAverage(next);
+				var selected = A2(
+					$elm$core$Maybe$withDefault,
+					previous,
+					A2(
+						$elm_community$list_extra$List$Extra$maximumBy,
+						function (j) {
+							return A3(triangleArea, previousPoint, j, nextAverage);
+						},
+						current));
+				if (rest.b) {
+					var head = rest.a;
+					var tail = rest.b;
+					return A2(
+						$elm$core$List$cons,
+						selected,
+						A4(iter, selected, next, head, tail));
+				} else {
+					return A2($elm$core$List$cons, selected, next);
+				}
+			});
+		if ((((bucketList.b && bucketList.a.b) && (!bucketList.a.b.b)) && bucketList.b.b) && bucketList.b.b.b) {
+			var _v5 = bucketList.a;
+			var first = _v5.a;
+			var _v6 = bucketList.b;
+			var current = _v6.a;
+			var _v7 = _v6.b;
+			var next = _v7.a;
+			var rest = _v7.b;
+			return A2(
+				$elm$core$List$cons,
+				first,
+				A4(iter, first, current, next, rest));
+		} else {
+			return _List_Nil;
+		}
+	};
+	var setup = F2(
+		function (first, tail) {
+			var _v1 = $elm_community$list_extra$List$Extra$unconsLast(tail);
+			if (_v1.$ === 'Nothing') {
+				return _List_Nil;
+			} else {
+				var _v2 = _v1.a;
+				var last = _v2.a;
+				var middle = _v2.b;
+				return (input.threshold === 1) ? _List_fromArray(
+					[first]) : ((input.threshold === 2) ? _List_fromArray(
+					[first, last]) : execute(
+					A2(
+						$elm$core$List$cons,
+						_List_fromArray(
+							[first]),
+						_Utils_ap(
+							A2($RalfNorthman$elm_lttb$LTTB$splitIn, input.threshold - 2, middle),
+							_List_fromArray(
+								[
+									_List_fromArray(
+									[last])
+								])))));
+			}
+		});
+	var data = A2($elm$core$List$sortBy, x, input.data);
+	if (input.threshold <= 0) {
+		return _List_Nil;
+	} else {
+		if (_Utils_cmp(
+			$elm$core$List$length(data),
+			input.threshold) < 1) {
+			return data;
+		} else {
+			if (data.b) {
+				var head = data.a;
+				var tail = data.b;
+				return A2(setup, head, tail);
+			} else {
+				return _List_Nil;
+			}
+		}
+	}
+};
+var $data_viz_lab$elm_chart_builder$Chart$Internal$TableHelpers$downsampleDataContinuous = function (data) {
+	return $RalfNorthman$elm_lttb$LTTB$downsample(
+		{
+			data: data,
+			threshold: $data_viz_lab$elm_chart_builder$Chart$Internal$TableHelpers$dataThreshold(data),
+			xGetter: $elm$core$Tuple$first,
+			yGetter: $elm$core$Tuple$second
+		});
+};
+var $data_viz_lab$elm_chart_builder$Chart$Internal$TableHelpers$downsampleDataTime = function (data) {
+	return $RalfNorthman$elm_lttb$LTTB$downsample(
+		{
+			data: data,
+			threshold: $data_viz_lab$elm_chart_builder$Chart$Internal$TableHelpers$dataThreshold(data),
+			xGetter: A2(
+				$elm$core$Basics$composeR,
+				$elm$core$Tuple$first,
+				A2($elm$core$Basics$composeR, $elm$time$Time$posixToMillis, $elm$core$Basics$toFloat)),
+			yGetter: $elm$core$Tuple$second
+		});
+};
+var $data_viz_lab$elm_chart_builder$Chart$Internal$TableHelpers$dataContinuousGroupToTableData = F2(
+	function (c, data) {
+		if (data.$ === 'DataTime') {
+			var data_ = data.a;
+			return A2(
+				$elm$core$List$map,
+				function (points) {
+					return $elm$core$List$concat(
+						A2(
+							$elm$core$List$map,
+							function (p) {
+								return _List_fromArray(
+									[
+										c.tablePosixFormat(p.a),
+										c.tableFloatFormat(p.b)
+									]);
+							},
+							points));
+				},
+				$elm_community$list_extra$List$Extra$transpose(
+					A2(
+						$elm$core$List$map,
+						$data_viz_lab$elm_chart_builder$Chart$Internal$TableHelpers$downsampleDataTime,
+						A2(
+							$elm$core$List$map,
+							function ($) {
+								return $.points;
+							},
+							data_))));
+		} else {
+			var data_ = data.a;
+			return A2(
+				$elm$core$List$map,
+				function (points) {
+					return $elm$core$List$concat(
+						A2(
+							$elm$core$List$map,
+							function (p) {
+								return _List_fromArray(
+									[
+										c.tableFloatFormat(p.a),
+										c.tableFloatFormat(p.b)
+									]);
+							},
+							points));
+				},
+				$elm_community$list_extra$List$Extra$transpose(
+					A2(
+						$elm$core$List$map,
+						$data_viz_lab$elm_chart_builder$Chart$Internal$TableHelpers$downsampleDataContinuous,
+						A2(
+							$elm$core$List$map,
+							function ($) {
+								return $.points;
+							},
+							data_))));
+		}
+	});
+var $data_viz_lab$elm_chart_builder$Chart$Internal$TableHelpers$dataContinuousGroupToTableHeadings = F2(
+	function (data, content) {
+		var toHeading = function (d) {
+			return A2(
+				$data_viz_lab$elm_chart_builder$Chart$Internal$Table$HeadingAndSubHeadings,
+				A2($elm$core$Maybe$withDefault, '', d.groupLabel),
+				$data_viz_lab$elm_chart_builder$Chart$Internal$TableHelpers$getLabelsFromContent(content));
+		};
+		var toHeadings = function (dd) {
+			return $data_viz_lab$elm_chart_builder$Chart$Internal$Type$noGroups(dd) ? A2(
+				$elm$core$Basics$always,
+				$data_viz_lab$elm_chart_builder$Chart$Internal$Table$Headings(
+					$data_viz_lab$elm_chart_builder$Chart$Internal$TableHelpers$getLabelsFromContent(content)),
+				dd) : $data_viz_lab$elm_chart_builder$Chart$Internal$Table$ComplexHeadings(
+				A2($elm$core$List$map, toHeading, dd));
+		};
+		if (data.$ === 'DataTime') {
+			var data_ = data.a;
+			return toHeadings(data_);
+		} else {
+			var data_ = data.a;
+			return toHeadings(data_);
+		}
+	});
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Line$tableElement = F2(
+	function (config, data) {
+		var c = $data_viz_lab$elm_chart_builder$Chart$Internal$Type$fromConfig(config);
+		var tableData = A2($data_viz_lab$elm_chart_builder$Chart$Internal$TableHelpers$dataContinuousGroupToTableData, c, data);
+		var tableHeadings = A2($data_viz_lab$elm_chart_builder$Chart$Internal$TableHelpers$dataContinuousGroupToTableHeadings, data, c.accessibilityContent);
+		var table = $data_viz_lab$elm_chart_builder$Chart$Internal$Table$view(
+			A2(
+				$data_viz_lab$elm_chart_builder$Chart$Internal$Table$setColumnHeadings,
+				tableHeadings,
+				$data_viz_lab$elm_chart_builder$Chart$Internal$Table$generate(tableData)));
+		return $data_viz_lab$elm_chart_builder$Chart$Internal$Helpers$invisibleFigcaption(
+			_List_fromArray(
+				[
+					function () {
+					if (table.$ === 'Ok') {
+						var table_ = table.a;
+						return A2(
+							$elm$html$Html$div,
+							_List_Nil,
+							_List_fromArray(
+								[table_]));
+					} else {
+						var error = table.a;
+						return $elm$html$Html$text(
+							$data_viz_lab$elm_chart_builder$Chart$Internal$Table$errorToString(error));
+					}
+				}()
+				]));
+	});
+var $justinmimbs$time_extra$Time$Extra$Day = {$: 'Day'};
+var $justinmimbs$date$Date$Days = {$: 'Days'};
+var $justinmimbs$time_extra$Time$Extra$Millisecond = {$: 'Millisecond'};
+var $justinmimbs$time_extra$Time$Extra$Month = {$: 'Month'};
+var $justinmimbs$date$Date$Months = {$: 'Months'};
+var $justinmimbs$date$Date$RD = function (a) {
+	return {$: 'RD', a: a};
+};
+var $justinmimbs$date$Date$isLeapYear = function (y) {
+	return ((!A2($elm$core$Basics$modBy, 4, y)) && (!(!A2($elm$core$Basics$modBy, 100, y)))) || (!A2($elm$core$Basics$modBy, 400, y));
+};
+var $justinmimbs$date$Date$daysBeforeMonth = F2(
+	function (y, m) {
+		var leapDays = $justinmimbs$date$Date$isLeapYear(y) ? 1 : 0;
+		switch (m.$) {
+			case 'Jan':
+				return 0;
+			case 'Feb':
+				return 31;
+			case 'Mar':
+				return 59 + leapDays;
+			case 'Apr':
+				return 90 + leapDays;
+			case 'May':
+				return 120 + leapDays;
+			case 'Jun':
+				return 151 + leapDays;
+			case 'Jul':
+				return 181 + leapDays;
+			case 'Aug':
+				return 212 + leapDays;
+			case 'Sep':
+				return 243 + leapDays;
+			case 'Oct':
+				return 273 + leapDays;
+			case 'Nov':
+				return 304 + leapDays;
+			default:
+				return 334 + leapDays;
+		}
+	});
+var $justinmimbs$date$Date$floorDiv = F2(
+	function (a, b) {
+		return $elm$core$Basics$floor(a / b);
+	});
+var $justinmimbs$date$Date$daysBeforeYear = function (y1) {
+	var y = y1 - 1;
+	var leapYears = (A2($justinmimbs$date$Date$floorDiv, y, 4) - A2($justinmimbs$date$Date$floorDiv, y, 100)) + A2($justinmimbs$date$Date$floorDiv, y, 400);
+	return (365 * y) + leapYears;
+};
+var $justinmimbs$date$Date$daysInMonth = F2(
+	function (y, m) {
+		switch (m.$) {
+			case 'Jan':
+				return 31;
+			case 'Feb':
+				return $justinmimbs$date$Date$isLeapYear(y) ? 29 : 28;
+			case 'Mar':
+				return 31;
+			case 'Apr':
+				return 30;
+			case 'May':
+				return 31;
+			case 'Jun':
+				return 30;
+			case 'Jul':
+				return 31;
+			case 'Aug':
+				return 31;
+			case 'Sep':
+				return 30;
+			case 'Oct':
+				return 31;
+			case 'Nov':
+				return 30;
+			default:
+				return 31;
+		}
+	});
+var $justinmimbs$date$Date$monthToNumber = function (m) {
+	switch (m.$) {
+		case 'Jan':
+			return 1;
+		case 'Feb':
+			return 2;
+		case 'Mar':
+			return 3;
+		case 'Apr':
+			return 4;
+		case 'May':
+			return 5;
+		case 'Jun':
+			return 6;
+		case 'Jul':
+			return 7;
+		case 'Aug':
+			return 8;
+		case 'Sep':
+			return 9;
+		case 'Oct':
+			return 10;
+		case 'Nov':
+			return 11;
+		default:
+			return 12;
+	}
+};
+var $elm$time$Time$Apr = {$: 'Apr'};
+var $elm$time$Time$Aug = {$: 'Aug'};
+var $elm$time$Time$Dec = {$: 'Dec'};
+var $elm$time$Time$Feb = {$: 'Feb'};
+var $elm$time$Time$Jan = {$: 'Jan'};
+var $elm$time$Time$Jul = {$: 'Jul'};
+var $elm$time$Time$Jun = {$: 'Jun'};
+var $elm$time$Time$Mar = {$: 'Mar'};
+var $elm$time$Time$May = {$: 'May'};
+var $elm$time$Time$Nov = {$: 'Nov'};
+var $elm$time$Time$Oct = {$: 'Oct'};
+var $elm$time$Time$Sep = {$: 'Sep'};
+var $justinmimbs$date$Date$numberToMonth = function (mn) {
+	var _v0 = A2($elm$core$Basics$max, 1, mn);
+	switch (_v0) {
+		case 1:
+			return $elm$time$Time$Jan;
+		case 2:
+			return $elm$time$Time$Feb;
+		case 3:
+			return $elm$time$Time$Mar;
+		case 4:
+			return $elm$time$Time$Apr;
+		case 5:
+			return $elm$time$Time$May;
+		case 6:
+			return $elm$time$Time$Jun;
+		case 7:
+			return $elm$time$Time$Jul;
+		case 8:
+			return $elm$time$Time$Aug;
+		case 9:
+			return $elm$time$Time$Sep;
+		case 10:
+			return $elm$time$Time$Oct;
+		case 11:
+			return $elm$time$Time$Nov;
+		default:
+			return $elm$time$Time$Dec;
+	}
+};
+var $justinmimbs$date$Date$toCalendarDateHelp = F3(
+	function (y, m, d) {
+		toCalendarDateHelp:
+		while (true) {
+			var monthDays = A2($justinmimbs$date$Date$daysInMonth, y, m);
+			var mn = $justinmimbs$date$Date$monthToNumber(m);
+			if ((mn < 12) && (_Utils_cmp(d, monthDays) > 0)) {
+				var $temp$y = y,
+					$temp$m = $justinmimbs$date$Date$numberToMonth(mn + 1),
+					$temp$d = d - monthDays;
+				y = $temp$y;
+				m = $temp$m;
+				d = $temp$d;
+				continue toCalendarDateHelp;
+			} else {
+				return {day: d, month: m, year: y};
+			}
+		}
+	});
+var $justinmimbs$date$Date$divWithRemainder = F2(
+	function (a, b) {
+		return _Utils_Tuple2(
+			A2($justinmimbs$date$Date$floorDiv, a, b),
+			A2($elm$core$Basics$modBy, b, a));
+	});
+var $justinmimbs$date$Date$year = function (_v0) {
+	var rd = _v0.a;
+	var _v1 = A2($justinmimbs$date$Date$divWithRemainder, rd, 146097);
+	var n400 = _v1.a;
+	var r400 = _v1.b;
+	var _v2 = A2($justinmimbs$date$Date$divWithRemainder, r400, 36524);
+	var n100 = _v2.a;
+	var r100 = _v2.b;
+	var _v3 = A2($justinmimbs$date$Date$divWithRemainder, r100, 1461);
+	var n4 = _v3.a;
+	var r4 = _v3.b;
+	var _v4 = A2($justinmimbs$date$Date$divWithRemainder, r4, 365);
+	var n1 = _v4.a;
+	var r1 = _v4.b;
+	var n = (!r1) ? 0 : 1;
+	return ((((n400 * 400) + (n100 * 100)) + (n4 * 4)) + n1) + n;
+};
+var $justinmimbs$date$Date$toOrdinalDate = function (_v0) {
+	var rd = _v0.a;
+	var y = $justinmimbs$date$Date$year(
+		$justinmimbs$date$Date$RD(rd));
+	return {
+		ordinalDay: rd - $justinmimbs$date$Date$daysBeforeYear(y),
+		year: y
+	};
+};
+var $justinmimbs$date$Date$toCalendarDate = function (_v0) {
+	var rd = _v0.a;
+	var date = $justinmimbs$date$Date$toOrdinalDate(
+		$justinmimbs$date$Date$RD(rd));
+	return A3($justinmimbs$date$Date$toCalendarDateHelp, date.year, $elm$time$Time$Jan, date.ordinalDay);
+};
+var $justinmimbs$date$Date$add = F3(
+	function (unit, n, _v0) {
+		var rd = _v0.a;
+		switch (unit.$) {
+			case 'Years':
+				return A3(
+					$justinmimbs$date$Date$add,
+					$justinmimbs$date$Date$Months,
+					12 * n,
+					$justinmimbs$date$Date$RD(rd));
+			case 'Months':
+				var date = $justinmimbs$date$Date$toCalendarDate(
+					$justinmimbs$date$Date$RD(rd));
+				var wholeMonths = ((12 * (date.year - 1)) + ($justinmimbs$date$Date$monthToNumber(date.month) - 1)) + n;
+				var m = $justinmimbs$date$Date$numberToMonth(
+					A2($elm$core$Basics$modBy, 12, wholeMonths) + 1);
+				var y = A2($justinmimbs$date$Date$floorDiv, wholeMonths, 12) + 1;
+				return $justinmimbs$date$Date$RD(
+					($justinmimbs$date$Date$daysBeforeYear(y) + A2($justinmimbs$date$Date$daysBeforeMonth, y, m)) + A2(
+						$elm$core$Basics$min,
+						date.day,
+						A2($justinmimbs$date$Date$daysInMonth, y, m)));
+			case 'Weeks':
+				return $justinmimbs$date$Date$RD(rd + (7 * n));
+			default:
+				return $justinmimbs$date$Date$RD(rd + n);
+		}
+	});
+var $justinmimbs$date$Date$fromCalendarDate = F3(
+	function (y, m, d) {
+		return $justinmimbs$date$Date$RD(
+			($justinmimbs$date$Date$daysBeforeYear(y) + A2($justinmimbs$date$Date$daysBeforeMonth, y, m)) + A3(
+				$elm$core$Basics$clamp,
+				1,
+				A2($justinmimbs$date$Date$daysInMonth, y, m),
+				d));
+	});
+var $elm$time$Time$flooredDiv = F2(
+	function (numerator, denominator) {
+		return $elm$core$Basics$floor(numerator / denominator);
+	});
+var $elm$time$Time$toAdjustedMinutesHelp = F3(
+	function (defaultOffset, posixMinutes, eras) {
+		toAdjustedMinutesHelp:
+		while (true) {
+			if (!eras.b) {
+				return posixMinutes + defaultOffset;
+			} else {
+				var era = eras.a;
+				var olderEras = eras.b;
+				if (_Utils_cmp(era.start, posixMinutes) < 0) {
+					return posixMinutes + era.offset;
+				} else {
+					var $temp$defaultOffset = defaultOffset,
+						$temp$posixMinutes = posixMinutes,
+						$temp$eras = olderEras;
+					defaultOffset = $temp$defaultOffset;
+					posixMinutes = $temp$posixMinutes;
+					eras = $temp$eras;
+					continue toAdjustedMinutesHelp;
+				}
+			}
+		}
+	});
+var $elm$time$Time$toAdjustedMinutes = F2(
+	function (_v0, time) {
+		var defaultOffset = _v0.a;
+		var eras = _v0.b;
+		return A3(
+			$elm$time$Time$toAdjustedMinutesHelp,
+			defaultOffset,
+			A2(
+				$elm$time$Time$flooredDiv,
+				$elm$time$Time$posixToMillis(time),
+				60000),
+			eras);
+	});
+var $elm$time$Time$toCivil = function (minutes) {
+	var rawDay = A2($elm$time$Time$flooredDiv, minutes, 60 * 24) + 719468;
+	var era = (((rawDay >= 0) ? rawDay : (rawDay - 146096)) / 146097) | 0;
+	var dayOfEra = rawDay - (era * 146097);
+	var yearOfEra = ((((dayOfEra - ((dayOfEra / 1460) | 0)) + ((dayOfEra / 36524) | 0)) - ((dayOfEra / 146096) | 0)) / 365) | 0;
+	var dayOfYear = dayOfEra - (((365 * yearOfEra) + ((yearOfEra / 4) | 0)) - ((yearOfEra / 100) | 0));
+	var mp = (((5 * dayOfYear) + 2) / 153) | 0;
+	var month = mp + ((mp < 10) ? 3 : (-9));
+	var year = yearOfEra + (era * 400);
+	return {
+		day: (dayOfYear - ((((153 * mp) + 2) / 5) | 0)) + 1,
+		month: month,
+		year: year + ((month <= 2) ? 1 : 0)
+	};
+};
+var $elm$time$Time$toDay = F2(
+	function (zone, time) {
+		return $elm$time$Time$toCivil(
+			A2($elm$time$Time$toAdjustedMinutes, zone, time)).day;
+	});
+var $elm$time$Time$toMonth = F2(
+	function (zone, time) {
+		var _v0 = $elm$time$Time$toCivil(
+			A2($elm$time$Time$toAdjustedMinutes, zone, time)).month;
+		switch (_v0) {
+			case 1:
+				return $elm$time$Time$Jan;
+			case 2:
+				return $elm$time$Time$Feb;
+			case 3:
+				return $elm$time$Time$Mar;
+			case 4:
+				return $elm$time$Time$Apr;
+			case 5:
+				return $elm$time$Time$May;
+			case 6:
+				return $elm$time$Time$Jun;
+			case 7:
+				return $elm$time$Time$Jul;
+			case 8:
+				return $elm$time$Time$Aug;
+			case 9:
+				return $elm$time$Time$Sep;
+			case 10:
+				return $elm$time$Time$Oct;
+			case 11:
+				return $elm$time$Time$Nov;
+			default:
+				return $elm$time$Time$Dec;
+		}
+	});
+var $elm$time$Time$toYear = F2(
+	function (zone, time) {
+		return $elm$time$Time$toCivil(
+			A2($elm$time$Time$toAdjustedMinutes, zone, time)).year;
+	});
+var $justinmimbs$date$Date$fromPosix = F2(
+	function (zone, posix) {
+		return A3(
+			$justinmimbs$date$Date$fromCalendarDate,
+			A2($elm$time$Time$toYear, zone, posix),
+			A2($elm$time$Time$toMonth, zone, posix),
+			A2($elm$time$Time$toDay, zone, posix));
+	});
+var $justinmimbs$date$Date$toRataDie = function (_v0) {
+	var rd = _v0.a;
+	return rd;
+};
+var $justinmimbs$time_extra$Time$Extra$dateToMillis = function (date) {
+	var daysSinceEpoch = $justinmimbs$date$Date$toRataDie(date) - 719163;
+	return daysSinceEpoch * 86400000;
+};
+var $justinmimbs$time_extra$Time$Extra$timeFromClock = F4(
+	function (hour, minute, second, millisecond) {
+		return (((hour * 3600000) + (minute * 60000)) + (second * 1000)) + millisecond;
+	});
+var $elm$time$Time$toHour = F2(
+	function (zone, time) {
+		return A2(
+			$elm$core$Basics$modBy,
+			24,
+			A2(
+				$elm$time$Time$flooredDiv,
+				A2($elm$time$Time$toAdjustedMinutes, zone, time),
+				60));
+	});
+var $elm$time$Time$toMillis = F2(
+	function (_v0, time) {
+		return A2(
+			$elm$core$Basics$modBy,
+			1000,
+			$elm$time$Time$posixToMillis(time));
+	});
+var $elm$time$Time$toMinute = F2(
+	function (zone, time) {
+		return A2(
+			$elm$core$Basics$modBy,
+			60,
+			A2($elm$time$Time$toAdjustedMinutes, zone, time));
+	});
+var $elm$time$Time$toSecond = F2(
+	function (_v0, time) {
+		return A2(
+			$elm$core$Basics$modBy,
+			60,
+			A2(
+				$elm$time$Time$flooredDiv,
+				$elm$time$Time$posixToMillis(time),
+				1000));
+	});
+var $justinmimbs$time_extra$Time$Extra$timeFromPosix = F2(
+	function (zone, posix) {
+		return A4(
+			$justinmimbs$time_extra$Time$Extra$timeFromClock,
+			A2($elm$time$Time$toHour, zone, posix),
+			A2($elm$time$Time$toMinute, zone, posix),
+			A2($elm$time$Time$toSecond, zone, posix),
+			A2($elm$time$Time$toMillis, zone, posix));
+	});
+var $justinmimbs$time_extra$Time$Extra$toOffset = F2(
+	function (zone, posix) {
+		var millis = $elm$time$Time$posixToMillis(posix);
+		var localMillis = $justinmimbs$time_extra$Time$Extra$dateToMillis(
+			A2($justinmimbs$date$Date$fromPosix, zone, posix)) + A2($justinmimbs$time_extra$Time$Extra$timeFromPosix, zone, posix);
+		return ((localMillis - millis) / 60000) | 0;
+	});
+var $justinmimbs$time_extra$Time$Extra$posixFromDateTime = F3(
+	function (zone, date, time) {
+		var millis = $justinmimbs$time_extra$Time$Extra$dateToMillis(date) + time;
+		var offset0 = A2(
+			$justinmimbs$time_extra$Time$Extra$toOffset,
+			zone,
+			$elm$time$Time$millisToPosix(millis));
+		var posix1 = $elm$time$Time$millisToPosix(millis - (offset0 * 60000));
+		var offset1 = A2($justinmimbs$time_extra$Time$Extra$toOffset, zone, posix1);
+		if (_Utils_eq(offset0, offset1)) {
+			return posix1;
+		} else {
+			var posix2 = $elm$time$Time$millisToPosix(millis - (offset1 * 60000));
+			var offset2 = A2($justinmimbs$time_extra$Time$Extra$toOffset, zone, posix2);
+			return _Utils_eq(offset1, offset2) ? posix2 : posix1;
+		}
+	});
+var $justinmimbs$time_extra$Time$Extra$add = F4(
+	function (interval, n, zone, posix) {
+		add:
+		while (true) {
+			switch (interval.$) {
+				case 'Millisecond':
+					return $elm$time$Time$millisToPosix(
+						$elm$time$Time$posixToMillis(posix) + n);
+				case 'Second':
+					var $temp$interval = $justinmimbs$time_extra$Time$Extra$Millisecond,
+						$temp$n = n * 1000,
+						$temp$zone = zone,
+						$temp$posix = posix;
+					interval = $temp$interval;
+					n = $temp$n;
+					zone = $temp$zone;
+					posix = $temp$posix;
+					continue add;
+				case 'Minute':
+					var $temp$interval = $justinmimbs$time_extra$Time$Extra$Millisecond,
+						$temp$n = n * 60000,
+						$temp$zone = zone,
+						$temp$posix = posix;
+					interval = $temp$interval;
+					n = $temp$n;
+					zone = $temp$zone;
+					posix = $temp$posix;
+					continue add;
+				case 'Hour':
+					var $temp$interval = $justinmimbs$time_extra$Time$Extra$Millisecond,
+						$temp$n = n * 3600000,
+						$temp$zone = zone,
+						$temp$posix = posix;
+					interval = $temp$interval;
+					n = $temp$n;
+					zone = $temp$zone;
+					posix = $temp$posix;
+					continue add;
+				case 'Day':
+					return A3(
+						$justinmimbs$time_extra$Time$Extra$posixFromDateTime,
+						zone,
+						A3(
+							$justinmimbs$date$Date$add,
+							$justinmimbs$date$Date$Days,
+							n,
+							A2($justinmimbs$date$Date$fromPosix, zone, posix)),
+						A2($justinmimbs$time_extra$Time$Extra$timeFromPosix, zone, posix));
+				case 'Month':
+					return A3(
+						$justinmimbs$time_extra$Time$Extra$posixFromDateTime,
+						zone,
+						A3(
+							$justinmimbs$date$Date$add,
+							$justinmimbs$date$Date$Months,
+							n,
+							A2($justinmimbs$date$Date$fromPosix, zone, posix)),
+						A2($justinmimbs$time_extra$Time$Extra$timeFromPosix, zone, posix));
+				case 'Year':
+					var $temp$interval = $justinmimbs$time_extra$Time$Extra$Month,
+						$temp$n = n * 12,
+						$temp$zone = zone,
+						$temp$posix = posix;
+					interval = $temp$interval;
+					n = $temp$n;
+					zone = $temp$zone;
+					posix = $temp$posix;
+					continue add;
+				case 'Quarter':
+					var $temp$interval = $justinmimbs$time_extra$Time$Extra$Month,
+						$temp$n = n * 3,
+						$temp$zone = zone,
+						$temp$posix = posix;
+					interval = $temp$interval;
+					n = $temp$n;
+					zone = $temp$zone;
+					posix = $temp$posix;
+					continue add;
+				case 'Week':
+					var $temp$interval = $justinmimbs$time_extra$Time$Extra$Day,
+						$temp$n = n * 7,
+						$temp$zone = zone,
+						$temp$posix = posix;
+					interval = $temp$interval;
+					n = $temp$n;
+					zone = $temp$zone;
+					posix = $temp$posix;
+					continue add;
+				default:
+					var weekday = interval;
+					var $temp$interval = $justinmimbs$time_extra$Time$Extra$Day,
+						$temp$n = n * 7,
+						$temp$zone = zone,
+						$temp$posix = posix;
+					interval = $temp$interval;
+					n = $temp$n;
+					zone = $temp$zone;
+					posix = $temp$posix;
+					continue add;
+			}
+		}
+	});
+var $justinmimbs$date$Date$Day = {$: 'Day'};
+var $justinmimbs$date$Date$Friday = {$: 'Friday'};
+var $justinmimbs$date$Date$Monday = {$: 'Monday'};
+var $justinmimbs$date$Date$Month = {$: 'Month'};
+var $justinmimbs$date$Date$Quarter = {$: 'Quarter'};
+var $justinmimbs$date$Date$Saturday = {$: 'Saturday'};
+var $justinmimbs$date$Date$Sunday = {$: 'Sunday'};
+var $justinmimbs$date$Date$Thursday = {$: 'Thursday'};
+var $justinmimbs$date$Date$Tuesday = {$: 'Tuesday'};
+var $justinmimbs$date$Date$Wednesday = {$: 'Wednesday'};
+var $justinmimbs$date$Date$Week = {$: 'Week'};
+var $justinmimbs$date$Date$Year = {$: 'Year'};
+var $elm$time$Time$Fri = {$: 'Fri'};
+var $elm$time$Time$Mon = {$: 'Mon'};
+var $elm$time$Time$Sat = {$: 'Sat'};
+var $elm$time$Time$Sun = {$: 'Sun'};
+var $elm$time$Time$Thu = {$: 'Thu'};
+var $elm$time$Time$Tue = {$: 'Tue'};
+var $elm$time$Time$Wed = {$: 'Wed'};
+var $justinmimbs$date$Date$weekdayNumber = function (_v0) {
+	var rd = _v0.a;
+	var _v1 = A2($elm$core$Basics$modBy, 7, rd);
+	if (!_v1) {
+		return 7;
+	} else {
+		var n = _v1;
+		return n;
+	}
+};
+var $justinmimbs$date$Date$weekdayToNumber = function (wd) {
+	switch (wd.$) {
+		case 'Mon':
+			return 1;
+		case 'Tue':
+			return 2;
+		case 'Wed':
+			return 3;
+		case 'Thu':
+			return 4;
+		case 'Fri':
+			return 5;
+		case 'Sat':
+			return 6;
+		default:
+			return 7;
+	}
+};
+var $justinmimbs$date$Date$daysSincePreviousWeekday = F2(
+	function (wd, date) {
+		return A2(
+			$elm$core$Basics$modBy,
+			7,
+			($justinmimbs$date$Date$weekdayNumber(date) + 7) - $justinmimbs$date$Date$weekdayToNumber(wd));
+	});
+var $justinmimbs$date$Date$firstOfMonth = F2(
+	function (y, m) {
+		return $justinmimbs$date$Date$RD(
+			($justinmimbs$date$Date$daysBeforeYear(y) + A2($justinmimbs$date$Date$daysBeforeMonth, y, m)) + 1);
+	});
+var $justinmimbs$date$Date$firstOfYear = function (y) {
+	return $justinmimbs$date$Date$RD(
+		$justinmimbs$date$Date$daysBeforeYear(y) + 1);
+};
+var $justinmimbs$date$Date$month = A2(
+	$elm$core$Basics$composeR,
+	$justinmimbs$date$Date$toCalendarDate,
+	function ($) {
+		return $.month;
+	});
+var $justinmimbs$date$Date$monthToQuarter = function (m) {
+	return (($justinmimbs$date$Date$monthToNumber(m) + 2) / 3) | 0;
+};
+var $justinmimbs$date$Date$quarter = A2($elm$core$Basics$composeR, $justinmimbs$date$Date$month, $justinmimbs$date$Date$monthToQuarter);
+var $justinmimbs$date$Date$quarterToMonth = function (q) {
+	return $justinmimbs$date$Date$numberToMonth((q * 3) - 2);
+};
+var $justinmimbs$date$Date$floor = F2(
+	function (interval, date) {
+		var rd = date.a;
+		switch (interval.$) {
+			case 'Year':
+				return $justinmimbs$date$Date$firstOfYear(
+					$justinmimbs$date$Date$year(date));
+			case 'Quarter':
+				return A2(
+					$justinmimbs$date$Date$firstOfMonth,
+					$justinmimbs$date$Date$year(date),
+					$justinmimbs$date$Date$quarterToMonth(
+						$justinmimbs$date$Date$quarter(date)));
+			case 'Month':
+				return A2(
+					$justinmimbs$date$Date$firstOfMonth,
+					$justinmimbs$date$Date$year(date),
+					$justinmimbs$date$Date$month(date));
+			case 'Week':
+				return $justinmimbs$date$Date$RD(
+					rd - A2($justinmimbs$date$Date$daysSincePreviousWeekday, $elm$time$Time$Mon, date));
+			case 'Monday':
+				return $justinmimbs$date$Date$RD(
+					rd - A2($justinmimbs$date$Date$daysSincePreviousWeekday, $elm$time$Time$Mon, date));
+			case 'Tuesday':
+				return $justinmimbs$date$Date$RD(
+					rd - A2($justinmimbs$date$Date$daysSincePreviousWeekday, $elm$time$Time$Tue, date));
+			case 'Wednesday':
+				return $justinmimbs$date$Date$RD(
+					rd - A2($justinmimbs$date$Date$daysSincePreviousWeekday, $elm$time$Time$Wed, date));
+			case 'Thursday':
+				return $justinmimbs$date$Date$RD(
+					rd - A2($justinmimbs$date$Date$daysSincePreviousWeekday, $elm$time$Time$Thu, date));
+			case 'Friday':
+				return $justinmimbs$date$Date$RD(
+					rd - A2($justinmimbs$date$Date$daysSincePreviousWeekday, $elm$time$Time$Fri, date));
+			case 'Saturday':
+				return $justinmimbs$date$Date$RD(
+					rd - A2($justinmimbs$date$Date$daysSincePreviousWeekday, $elm$time$Time$Sat, date));
+			case 'Sunday':
+				return $justinmimbs$date$Date$RD(
+					rd - A2($justinmimbs$date$Date$daysSincePreviousWeekday, $elm$time$Time$Sun, date));
+			default:
+				return date;
+		}
+	});
+var $justinmimbs$time_extra$Time$Extra$floorDate = F3(
+	function (dateInterval, zone, posix) {
+		return A3(
+			$justinmimbs$time_extra$Time$Extra$posixFromDateTime,
+			zone,
+			A2(
+				$justinmimbs$date$Date$floor,
+				dateInterval,
+				A2($justinmimbs$date$Date$fromPosix, zone, posix)),
+			0);
+	});
+var $justinmimbs$time_extra$Time$Extra$floor = F3(
+	function (interval, zone, posix) {
+		switch (interval.$) {
+			case 'Millisecond':
+				return posix;
+			case 'Second':
+				return A3(
+					$justinmimbs$time_extra$Time$Extra$posixFromDateTime,
+					zone,
+					A2($justinmimbs$date$Date$fromPosix, zone, posix),
+					A4(
+						$justinmimbs$time_extra$Time$Extra$timeFromClock,
+						A2($elm$time$Time$toHour, zone, posix),
+						A2($elm$time$Time$toMinute, zone, posix),
+						A2($elm$time$Time$toSecond, zone, posix),
+						0));
+			case 'Minute':
+				return A3(
+					$justinmimbs$time_extra$Time$Extra$posixFromDateTime,
+					zone,
+					A2($justinmimbs$date$Date$fromPosix, zone, posix),
+					A4(
+						$justinmimbs$time_extra$Time$Extra$timeFromClock,
+						A2($elm$time$Time$toHour, zone, posix),
+						A2($elm$time$Time$toMinute, zone, posix),
+						0,
+						0));
+			case 'Hour':
+				return A3(
+					$justinmimbs$time_extra$Time$Extra$posixFromDateTime,
+					zone,
+					A2($justinmimbs$date$Date$fromPosix, zone, posix),
+					A4(
+						$justinmimbs$time_extra$Time$Extra$timeFromClock,
+						A2($elm$time$Time$toHour, zone, posix),
+						0,
+						0,
+						0));
+			case 'Day':
+				return A3($justinmimbs$time_extra$Time$Extra$floorDate, $justinmimbs$date$Date$Day, zone, posix);
+			case 'Month':
+				return A3($justinmimbs$time_extra$Time$Extra$floorDate, $justinmimbs$date$Date$Month, zone, posix);
+			case 'Year':
+				return A3($justinmimbs$time_extra$Time$Extra$floorDate, $justinmimbs$date$Date$Year, zone, posix);
+			case 'Quarter':
+				return A3($justinmimbs$time_extra$Time$Extra$floorDate, $justinmimbs$date$Date$Quarter, zone, posix);
+			case 'Week':
+				return A3($justinmimbs$time_extra$Time$Extra$floorDate, $justinmimbs$date$Date$Week, zone, posix);
+			case 'Monday':
+				return A3($justinmimbs$time_extra$Time$Extra$floorDate, $justinmimbs$date$Date$Monday, zone, posix);
+			case 'Tuesday':
+				return A3($justinmimbs$time_extra$Time$Extra$floorDate, $justinmimbs$date$Date$Tuesday, zone, posix);
+			case 'Wednesday':
+				return A3($justinmimbs$time_extra$Time$Extra$floorDate, $justinmimbs$date$Date$Wednesday, zone, posix);
+			case 'Thursday':
+				return A3($justinmimbs$time_extra$Time$Extra$floorDate, $justinmimbs$date$Date$Thursday, zone, posix);
+			case 'Friday':
+				return A3($justinmimbs$time_extra$Time$Extra$floorDate, $justinmimbs$date$Date$Friday, zone, posix);
+			case 'Saturday':
+				return A3($justinmimbs$time_extra$Time$Extra$floorDate, $justinmimbs$date$Date$Saturday, zone, posix);
+			default:
+				return A3($justinmimbs$time_extra$Time$Extra$floorDate, $justinmimbs$date$Date$Sunday, zone, posix);
+		}
+	});
+var $justinmimbs$time_extra$Time$Extra$ceiling = F3(
+	function (interval, zone, posix) {
+		var floored = A3($justinmimbs$time_extra$Time$Extra$floor, interval, zone, posix);
+		return _Utils_eq(floored, posix) ? posix : A4($justinmimbs$time_extra$Time$Extra$add, interval, 1, zone, floored);
+	});
+var $justinmimbs$time_extra$Time$Extra$Year = {$: 'Year'};
+var $gampleman$elm_visualization$Scale$Time$timeLength = function (interval) {
+	switch (interval.$) {
+		case 'Millisecond':
+			return 1;
+		case 'Second':
+			return 1000;
+		case 'Minute':
+			return 60 * 1000;
+		case 'Hour':
+			return (60 * 60) * 1000;
+		case 'Day':
+			return ((24 * 60) * 60) * 1000;
+		case 'Month':
+			return (((30 * 24) * 60) * 60) * 1000;
+		case 'Year':
+			return ((((365 * 30) * 24) * 60) * 60) * 1000;
+		case 'Quarter':
+			return ((((4 * 30) * 24) * 60) * 60) * 1000;
+		case 'Week':
+			return (((7 * 24) * 60) * 60) * 1000;
+		default:
+			return 0;
+	}
+};
+var $gampleman$elm_visualization$Scale$Time$findInterval = F2(
+	function (target, intervals) {
+		findInterval:
+		while (true) {
+			if (!intervals.b) {
+				return _Utils_Tuple2($justinmimbs$time_extra$Time$Extra$Year, 1);
+			} else {
+				if (intervals.b.b) {
+					var _v1 = intervals.a;
+					var interval = _v1.a;
+					var step = _v1.b;
+					var _v2 = intervals.b;
+					var _v3 = _v2.a;
+					var interval_ = _v3.a;
+					var step_ = _v3.b;
+					var xs = _v2.b;
+					var ratio_ = (step_ * $gampleman$elm_visualization$Scale$Time$timeLength(interval_)) / target;
+					var ratio = target / (step * $gampleman$elm_visualization$Scale$Time$timeLength(interval));
+					if (_Utils_cmp(ratio, ratio_) < 0) {
+						return _Utils_Tuple2(interval, step);
+					} else {
+						var $temp$target = target,
+							$temp$intervals = A2(
+							$elm$core$List$cons,
+							_Utils_Tuple2(interval_, step_),
+							xs);
+						target = $temp$target;
+						intervals = $temp$intervals;
+						continue findInterval;
+					}
+				} else {
+					var x = intervals.a;
+					var xs = intervals.b;
+					return x;
+				}
+			}
+		}
+	});
+var $justinmimbs$time_extra$Time$Extra$Hour = {$: 'Hour'};
+var $justinmimbs$time_extra$Time$Extra$Minute = {$: 'Minute'};
+var $justinmimbs$time_extra$Time$Extra$Second = {$: 'Second'};
+var $justinmimbs$time_extra$Time$Extra$Week = {$: 'Week'};
+var $gampleman$elm_visualization$Scale$Time$tickIntervals = _List_fromArray(
+	[
+		_Utils_Tuple2($justinmimbs$time_extra$Time$Extra$Second, 1),
+		_Utils_Tuple2($justinmimbs$time_extra$Time$Extra$Second, 5),
+		_Utils_Tuple2($justinmimbs$time_extra$Time$Extra$Second, 15),
+		_Utils_Tuple2($justinmimbs$time_extra$Time$Extra$Second, 30),
+		_Utils_Tuple2($justinmimbs$time_extra$Time$Extra$Minute, 1),
+		_Utils_Tuple2($justinmimbs$time_extra$Time$Extra$Minute, 5),
+		_Utils_Tuple2($justinmimbs$time_extra$Time$Extra$Minute, 15),
+		_Utils_Tuple2($justinmimbs$time_extra$Time$Extra$Minute, 30),
+		_Utils_Tuple2($justinmimbs$time_extra$Time$Extra$Hour, 1),
+		_Utils_Tuple2($justinmimbs$time_extra$Time$Extra$Hour, 3),
+		_Utils_Tuple2($justinmimbs$time_extra$Time$Extra$Hour, 6),
+		_Utils_Tuple2($justinmimbs$time_extra$Time$Extra$Hour, 12),
+		_Utils_Tuple2($justinmimbs$time_extra$Time$Extra$Day, 1),
+		_Utils_Tuple2($justinmimbs$time_extra$Time$Extra$Day, 2),
+		_Utils_Tuple2($justinmimbs$time_extra$Time$Extra$Week, 1),
+		_Utils_Tuple2($justinmimbs$time_extra$Time$Extra$Month, 1),
+		_Utils_Tuple2($justinmimbs$time_extra$Time$Extra$Month, 3),
+		_Utils_Tuple2($justinmimbs$time_extra$Time$Extra$Year, 1)
+	]);
+var $gampleman$elm_visualization$Scale$Time$toTime = function (_v0) {
+	var a = _v0.a;
+	var b = _v0.b;
+	return _Utils_Tuple2(
+		$elm$time$Time$posixToMillis(a),
+		$elm$time$Time$posixToMillis(b));
+};
+var $gampleman$elm_visualization$Scale$Time$nice = F3(
+	function (zone, domain, count) {
+		var _v0 = $gampleman$elm_visualization$Scale$Time$toTime(domain);
+		var start = _v0.a;
+		var end = _v0.b;
+		var target = $elm$core$Basics$abs(start - end) / count;
+		var _v1 = A2($gampleman$elm_visualization$Scale$Time$findInterval, target, $gampleman$elm_visualization$Scale$Time$tickIntervals);
+		var interval = _v1.a;
+		return _Utils_Tuple2(
+			A3($justinmimbs$time_extra$Time$Extra$floor, interval, zone, domain.a),
+			A3($justinmimbs$time_extra$Time$Extra$ceiling, interval, zone, domain.b));
+	});
+var $ryannhg$date_format$DateFormat$AmPmLowercase = {$: 'AmPmLowercase'};
+var $ryannhg$date_format$DateFormat$amPmLowercase = $ryannhg$date_format$DateFormat$AmPmLowercase;
+var $ryannhg$date_format$DateFormat$DayOfMonthFixed = {$: 'DayOfMonthFixed'};
+var $ryannhg$date_format$DateFormat$dayOfMonthFixed = $ryannhg$date_format$DateFormat$DayOfMonthFixed;
+var $ryannhg$date_format$DateFormat$Language$Language = F6(
+	function (toMonthName, toMonthAbbreviation, toWeekdayName, toWeekdayAbbreviation, toAmPm, toOrdinalSuffix) {
+		return {toAmPm: toAmPm, toMonthAbbreviation: toMonthAbbreviation, toMonthName: toMonthName, toOrdinalSuffix: toOrdinalSuffix, toWeekdayAbbreviation: toWeekdayAbbreviation, toWeekdayName: toWeekdayName};
+	});
+var $ryannhg$date_format$DateFormat$Language$toEnglishAmPm = function (hour) {
+	return (hour > 11) ? 'pm' : 'am';
+};
+var $ryannhg$date_format$DateFormat$Language$toEnglishMonthName = function (month) {
+	switch (month.$) {
+		case 'Jan':
+			return 'January';
+		case 'Feb':
+			return 'February';
+		case 'Mar':
+			return 'March';
+		case 'Apr':
+			return 'April';
+		case 'May':
+			return 'May';
+		case 'Jun':
+			return 'June';
+		case 'Jul':
+			return 'July';
+		case 'Aug':
+			return 'August';
+		case 'Sep':
+			return 'September';
+		case 'Oct':
+			return 'October';
+		case 'Nov':
+			return 'November';
+		default:
+			return 'December';
+	}
+};
+var $ryannhg$date_format$DateFormat$Language$toEnglishSuffix = function (num) {
+	var _v0 = A2($elm$core$Basics$modBy, 100, num);
+	switch (_v0) {
+		case 11:
+			return 'th';
+		case 12:
+			return 'th';
+		case 13:
+			return 'th';
+		default:
+			var _v1 = A2($elm$core$Basics$modBy, 10, num);
+			switch (_v1) {
+				case 1:
+					return 'st';
+				case 2:
+					return 'nd';
+				case 3:
+					return 'rd';
+				default:
+					return 'th';
+			}
+	}
+};
+var $ryannhg$date_format$DateFormat$Language$toEnglishWeekdayName = function (weekday) {
+	switch (weekday.$) {
+		case 'Mon':
+			return 'Monday';
+		case 'Tue':
+			return 'Tuesday';
+		case 'Wed':
+			return 'Wednesday';
+		case 'Thu':
+			return 'Thursday';
+		case 'Fri':
+			return 'Friday';
+		case 'Sat':
+			return 'Saturday';
+		default:
+			return 'Sunday';
+	}
+};
+var $ryannhg$date_format$DateFormat$Language$english = A6(
+	$ryannhg$date_format$DateFormat$Language$Language,
+	$ryannhg$date_format$DateFormat$Language$toEnglishMonthName,
+	A2(
+		$elm$core$Basics$composeR,
+		$ryannhg$date_format$DateFormat$Language$toEnglishMonthName,
+		$elm$core$String$left(3)),
+	$ryannhg$date_format$DateFormat$Language$toEnglishWeekdayName,
+	A2(
+		$elm$core$Basics$composeR,
+		$ryannhg$date_format$DateFormat$Language$toEnglishWeekdayName,
+		$elm$core$String$left(3)),
+	$ryannhg$date_format$DateFormat$Language$toEnglishAmPm,
+	$ryannhg$date_format$DateFormat$Language$toEnglishSuffix);
+var $ryannhg$date_format$DateFormat$amPm = F3(
+	function (language, zone, posix) {
+		return language.toAmPm(
+			A2($elm$time$Time$toHour, zone, posix));
+	});
+var $ryannhg$date_format$DateFormat$dayOfMonth = $elm$time$Time$toDay;
+var $ryannhg$date_format$DateFormat$days = _List_fromArray(
+	[$elm$time$Time$Sun, $elm$time$Time$Mon, $elm$time$Time$Tue, $elm$time$Time$Wed, $elm$time$Time$Thu, $elm$time$Time$Fri, $elm$time$Time$Sat]);
+var $elm$time$Time$toWeekday = F2(
+	function (zone, time) {
+		var _v0 = A2(
+			$elm$core$Basics$modBy,
+			7,
+			A2(
+				$elm$time$Time$flooredDiv,
+				A2($elm$time$Time$toAdjustedMinutes, zone, time),
+				60 * 24));
+		switch (_v0) {
+			case 0:
+				return $elm$time$Time$Thu;
+			case 1:
+				return $elm$time$Time$Fri;
+			case 2:
+				return $elm$time$Time$Sat;
+			case 3:
+				return $elm$time$Time$Sun;
+			case 4:
+				return $elm$time$Time$Mon;
+			case 5:
+				return $elm$time$Time$Tue;
+			default:
+				return $elm$time$Time$Wed;
+		}
+	});
+var $ryannhg$date_format$DateFormat$dayOfWeek = F2(
+	function (zone, posix) {
+		return function (_v1) {
+			var i = _v1.a;
+			return i;
+		}(
+			A2(
+				$elm$core$Maybe$withDefault,
+				_Utils_Tuple2(0, $elm$time$Time$Sun),
+				$elm$core$List$head(
+					A2(
+						$elm$core$List$filter,
+						function (_v0) {
+							var day = _v0.b;
+							return _Utils_eq(
+								day,
+								A2($elm$time$Time$toWeekday, zone, posix));
+						},
+						A2(
+							$elm$core$List$indexedMap,
+							F2(
+								function (i, day) {
+									return _Utils_Tuple2(i, day);
+								}),
+							$ryannhg$date_format$DateFormat$days)))));
+	});
+var $ryannhg$date_format$DateFormat$isLeapYear = function (year_) {
+	return (!(!A2($elm$core$Basics$modBy, 4, year_))) ? false : ((!(!A2($elm$core$Basics$modBy, 100, year_))) ? true : ((!(!A2($elm$core$Basics$modBy, 400, year_))) ? false : true));
+};
+var $ryannhg$date_format$DateFormat$daysInMonth = F2(
+	function (year_, month) {
+		switch (month.$) {
+			case 'Jan':
+				return 31;
+			case 'Feb':
+				return $ryannhg$date_format$DateFormat$isLeapYear(year_) ? 29 : 28;
+			case 'Mar':
+				return 31;
+			case 'Apr':
+				return 30;
+			case 'May':
+				return 31;
+			case 'Jun':
+				return 30;
+			case 'Jul':
+				return 31;
+			case 'Aug':
+				return 31;
+			case 'Sep':
+				return 30;
+			case 'Oct':
+				return 31;
+			case 'Nov':
+				return 30;
+			default:
+				return 31;
+		}
+	});
+var $ryannhg$date_format$DateFormat$months = _List_fromArray(
+	[$elm$time$Time$Jan, $elm$time$Time$Feb, $elm$time$Time$Mar, $elm$time$Time$Apr, $elm$time$Time$May, $elm$time$Time$Jun, $elm$time$Time$Jul, $elm$time$Time$Aug, $elm$time$Time$Sep, $elm$time$Time$Oct, $elm$time$Time$Nov, $elm$time$Time$Dec]);
+var $ryannhg$date_format$DateFormat$monthPair = F2(
+	function (zone, posix) {
+		return A2(
+			$elm$core$Maybe$withDefault,
+			_Utils_Tuple2(0, $elm$time$Time$Jan),
+			$elm$core$List$head(
+				A2(
+					$elm$core$List$filter,
+					function (_v0) {
+						var i = _v0.a;
+						var m = _v0.b;
+						return _Utils_eq(
+							m,
+							A2($elm$time$Time$toMonth, zone, posix));
+					},
+					A2(
+						$elm$core$List$indexedMap,
+						F2(
+							function (a, b) {
+								return _Utils_Tuple2(a, b);
+							}),
+						$ryannhg$date_format$DateFormat$months))));
+	});
+var $ryannhg$date_format$DateFormat$monthNumber_ = F2(
+	function (zone, posix) {
+		return 1 + function (_v0) {
+			var i = _v0.a;
+			var m = _v0.b;
+			return i;
+		}(
+			A2($ryannhg$date_format$DateFormat$monthPair, zone, posix));
+	});
+var $elm$core$List$sum = function (numbers) {
+	return A3($elm$core$List$foldl, $elm$core$Basics$add, 0, numbers);
+};
+var $ryannhg$date_format$DateFormat$dayOfYear = F2(
+	function (zone, posix) {
+		var monthsBeforeThisOne = A2(
+			$elm$core$List$take,
+			A2($ryannhg$date_format$DateFormat$monthNumber_, zone, posix) - 1,
+			$ryannhg$date_format$DateFormat$months);
+		var daysBeforeThisMonth = $elm$core$List$sum(
+			A2(
+				$elm$core$List$map,
+				$ryannhg$date_format$DateFormat$daysInMonth(
+					A2($elm$time$Time$toYear, zone, posix)),
+				monthsBeforeThisOne));
+		return daysBeforeThisMonth + A2($ryannhg$date_format$DateFormat$dayOfMonth, zone, posix);
+	});
+var $ryannhg$date_format$DateFormat$quarter = F2(
+	function (zone, posix) {
+		return (A2($ryannhg$date_format$DateFormat$monthNumber_, zone, posix) / 4) | 0;
+	});
+var $elm$core$String$right = F2(
+	function (n, string) {
+		return (n < 1) ? '' : A3(
+			$elm$core$String$slice,
+			-n,
+			$elm$core$String$length(string),
+			string);
+	});
+var $ryannhg$date_format$DateFormat$toFixedLength = F2(
+	function (totalChars, num) {
+		var numStr = $elm$core$String$fromInt(num);
+		var numZerosNeeded = totalChars - $elm$core$String$length(numStr);
+		var zeros = A2(
+			$elm$core$String$join,
+			'',
+			A2(
+				$elm$core$List$map,
+				function (_v0) {
+					return '0';
+				},
+				A2($elm$core$List$range, 1, numZerosNeeded)));
+		return _Utils_ap(zeros, numStr);
+	});
+var $elm$core$String$toLower = _String_toLower;
+var $ryannhg$date_format$DateFormat$toNonMilitary = function (num) {
+	return (!num) ? 12 : ((num <= 12) ? num : (num - 12));
+};
+var $elm$core$String$toUpper = _String_toUpper;
+var $ryannhg$date_format$DateFormat$millisecondsPerYear = $elm$core$Basics$round((((1000 * 60) * 60) * 24) * 365.25);
+var $ryannhg$date_format$DateFormat$firstDayOfYear = F2(
+	function (zone, time) {
+		return $elm$time$Time$millisToPosix(
+			$ryannhg$date_format$DateFormat$millisecondsPerYear * A2($elm$time$Time$toYear, zone, time));
+	});
+var $ryannhg$date_format$DateFormat$weekOfYear = F2(
+	function (zone, posix) {
+		var firstDay = A2($ryannhg$date_format$DateFormat$firstDayOfYear, zone, posix);
+		var firstDayOffset = A2($ryannhg$date_format$DateFormat$dayOfWeek, zone, firstDay);
+		var daysSoFar = A2($ryannhg$date_format$DateFormat$dayOfYear, zone, posix);
+		return (((daysSoFar + firstDayOffset) / 7) | 0) + 1;
+	});
+var $ryannhg$date_format$DateFormat$year = F2(
+	function (zone, time) {
+		return $elm$core$String$fromInt(
+			A2($elm$time$Time$toYear, zone, time));
+	});
+var $ryannhg$date_format$DateFormat$piece = F4(
+	function (language, zone, posix, token) {
+		switch (token.$) {
+			case 'MonthNumber':
+				return $elm$core$String$fromInt(
+					A2($ryannhg$date_format$DateFormat$monthNumber_, zone, posix));
+			case 'MonthSuffix':
+				return function (num) {
+					return _Utils_ap(
+						$elm$core$String$fromInt(num),
+						language.toOrdinalSuffix(num));
+				}(
+					A2($ryannhg$date_format$DateFormat$monthNumber_, zone, posix));
+			case 'MonthFixed':
+				return A2(
+					$ryannhg$date_format$DateFormat$toFixedLength,
+					2,
+					A2($ryannhg$date_format$DateFormat$monthNumber_, zone, posix));
+			case 'MonthNameAbbreviated':
+				return language.toMonthAbbreviation(
+					A2($elm$time$Time$toMonth, zone, posix));
+			case 'MonthNameFull':
+				return language.toMonthName(
+					A2($elm$time$Time$toMonth, zone, posix));
+			case 'QuarterNumber':
+				return $elm$core$String$fromInt(
+					1 + A2($ryannhg$date_format$DateFormat$quarter, zone, posix));
+			case 'QuarterSuffix':
+				return function (num) {
+					return _Utils_ap(
+						$elm$core$String$fromInt(num),
+						language.toOrdinalSuffix(num));
+				}(
+					1 + A2($ryannhg$date_format$DateFormat$quarter, zone, posix));
+			case 'DayOfMonthNumber':
+				return $elm$core$String$fromInt(
+					A2($ryannhg$date_format$DateFormat$dayOfMonth, zone, posix));
+			case 'DayOfMonthSuffix':
+				return function (num) {
+					return _Utils_ap(
+						$elm$core$String$fromInt(num),
+						language.toOrdinalSuffix(num));
+				}(
+					A2($ryannhg$date_format$DateFormat$dayOfMonth, zone, posix));
+			case 'DayOfMonthFixed':
+				return A2(
+					$ryannhg$date_format$DateFormat$toFixedLength,
+					2,
+					A2($ryannhg$date_format$DateFormat$dayOfMonth, zone, posix));
+			case 'DayOfYearNumber':
+				return $elm$core$String$fromInt(
+					A2($ryannhg$date_format$DateFormat$dayOfYear, zone, posix));
+			case 'DayOfYearSuffix':
+				return function (num) {
+					return _Utils_ap(
+						$elm$core$String$fromInt(num),
+						language.toOrdinalSuffix(num));
+				}(
+					A2($ryannhg$date_format$DateFormat$dayOfYear, zone, posix));
+			case 'DayOfYearFixed':
+				return A2(
+					$ryannhg$date_format$DateFormat$toFixedLength,
+					3,
+					A2($ryannhg$date_format$DateFormat$dayOfYear, zone, posix));
+			case 'DayOfWeekNumber':
+				return $elm$core$String$fromInt(
+					A2($ryannhg$date_format$DateFormat$dayOfWeek, zone, posix));
+			case 'DayOfWeekSuffix':
+				return function (num) {
+					return _Utils_ap(
+						$elm$core$String$fromInt(num),
+						language.toOrdinalSuffix(num));
+				}(
+					A2($ryannhg$date_format$DateFormat$dayOfWeek, zone, posix));
+			case 'DayOfWeekNameAbbreviated':
+				return language.toWeekdayAbbreviation(
+					A2($elm$time$Time$toWeekday, zone, posix));
+			case 'DayOfWeekNameFull':
+				return language.toWeekdayName(
+					A2($elm$time$Time$toWeekday, zone, posix));
+			case 'WeekOfYearNumber':
+				return $elm$core$String$fromInt(
+					A2($ryannhg$date_format$DateFormat$weekOfYear, zone, posix));
+			case 'WeekOfYearSuffix':
+				return function (num) {
+					return _Utils_ap(
+						$elm$core$String$fromInt(num),
+						language.toOrdinalSuffix(num));
+				}(
+					A2($ryannhg$date_format$DateFormat$weekOfYear, zone, posix));
+			case 'WeekOfYearFixed':
+				return A2(
+					$ryannhg$date_format$DateFormat$toFixedLength,
+					2,
+					A2($ryannhg$date_format$DateFormat$weekOfYear, zone, posix));
+			case 'YearNumberLastTwo':
+				return A2(
+					$elm$core$String$right,
+					2,
+					A2($ryannhg$date_format$DateFormat$year, zone, posix));
+			case 'YearNumber':
+				return A2($ryannhg$date_format$DateFormat$year, zone, posix);
+			case 'AmPmUppercase':
+				return $elm$core$String$toUpper(
+					A3($ryannhg$date_format$DateFormat$amPm, language, zone, posix));
+			case 'AmPmLowercase':
+				return $elm$core$String$toLower(
+					A3($ryannhg$date_format$DateFormat$amPm, language, zone, posix));
+			case 'HourMilitaryNumber':
+				return $elm$core$String$fromInt(
+					A2($elm$time$Time$toHour, zone, posix));
+			case 'HourMilitaryFixed':
+				return A2(
+					$ryannhg$date_format$DateFormat$toFixedLength,
+					2,
+					A2($elm$time$Time$toHour, zone, posix));
+			case 'HourNumber':
+				return $elm$core$String$fromInt(
+					$ryannhg$date_format$DateFormat$toNonMilitary(
+						A2($elm$time$Time$toHour, zone, posix)));
+			case 'HourFixed':
+				return A2(
+					$ryannhg$date_format$DateFormat$toFixedLength,
+					2,
+					$ryannhg$date_format$DateFormat$toNonMilitary(
+						A2($elm$time$Time$toHour, zone, posix)));
+			case 'HourMilitaryFromOneNumber':
+				return $elm$core$String$fromInt(
+					1 + A2($elm$time$Time$toHour, zone, posix));
+			case 'HourMilitaryFromOneFixed':
+				return A2(
+					$ryannhg$date_format$DateFormat$toFixedLength,
+					2,
+					1 + A2($elm$time$Time$toHour, zone, posix));
+			case 'MinuteNumber':
+				return $elm$core$String$fromInt(
+					A2($elm$time$Time$toMinute, zone, posix));
+			case 'MinuteFixed':
+				return A2(
+					$ryannhg$date_format$DateFormat$toFixedLength,
+					2,
+					A2($elm$time$Time$toMinute, zone, posix));
+			case 'SecondNumber':
+				return $elm$core$String$fromInt(
+					A2($elm$time$Time$toSecond, zone, posix));
+			case 'SecondFixed':
+				return A2(
+					$ryannhg$date_format$DateFormat$toFixedLength,
+					2,
+					A2($elm$time$Time$toSecond, zone, posix));
+			case 'MillisecondNumber':
+				return $elm$core$String$fromInt(
+					A2($elm$time$Time$toMillis, zone, posix));
+			case 'MillisecondFixed':
+				return A2(
+					$ryannhg$date_format$DateFormat$toFixedLength,
+					3,
+					A2($elm$time$Time$toMillis, zone, posix));
+			default:
+				var string = token.a;
+				return string;
+		}
+	});
+var $ryannhg$date_format$DateFormat$formatWithLanguage = F4(
+	function (language, tokens, zone, time) {
+		return A2(
+			$elm$core$String$join,
+			'',
+			A2(
+				$elm$core$List$map,
+				A3($ryannhg$date_format$DateFormat$piece, language, zone, time),
+				tokens));
+	});
+var $ryannhg$date_format$DateFormat$format = $ryannhg$date_format$DateFormat$formatWithLanguage($ryannhg$date_format$DateFormat$Language$english);
+var $ryannhg$date_format$DateFormat$HourFixed = {$: 'HourFixed'};
+var $ryannhg$date_format$DateFormat$hourFixed = $ryannhg$date_format$DateFormat$HourFixed;
+var $ryannhg$date_format$DateFormat$MillisecondFixed = {$: 'MillisecondFixed'};
+var $ryannhg$date_format$DateFormat$millisecondFixed = $ryannhg$date_format$DateFormat$MillisecondFixed;
+var $ryannhg$date_format$DateFormat$MinuteFixed = {$: 'MinuteFixed'};
+var $ryannhg$date_format$DateFormat$minuteFixed = $ryannhg$date_format$DateFormat$MinuteFixed;
+var $ryannhg$date_format$DateFormat$MonthNameAbbreviated = {$: 'MonthNameAbbreviated'};
+var $ryannhg$date_format$DateFormat$monthNameAbbreviated = $ryannhg$date_format$DateFormat$MonthNameAbbreviated;
+var $ryannhg$date_format$DateFormat$MonthNameFull = {$: 'MonthNameFull'};
+var $ryannhg$date_format$DateFormat$monthNameFull = $ryannhg$date_format$DateFormat$MonthNameFull;
+var $ryannhg$date_format$DateFormat$SecondFixed = {$: 'SecondFixed'};
+var $ryannhg$date_format$DateFormat$secondFixed = $ryannhg$date_format$DateFormat$SecondFixed;
+var $ryannhg$date_format$DateFormat$Text = function (a) {
+	return {$: 'Text', a: a};
+};
+var $ryannhg$date_format$DateFormat$text = $ryannhg$date_format$DateFormat$Text;
+var $ryannhg$date_format$DateFormat$YearNumber = {$: 'YearNumber'};
+var $ryannhg$date_format$DateFormat$yearNumber = $ryannhg$date_format$DateFormat$YearNumber;
+var $gampleman$elm_visualization$Scale$Time$tickFormat = F4(
+	function (zone, _v0, _v1, date) {
+		var time = $elm$time$Time$posixToMillis(date);
+		var significant = function (interval) {
+			return _Utils_cmp(
+				$elm$time$Time$posixToMillis(
+					A3($justinmimbs$time_extra$Time$Extra$floor, interval, zone, date)),
+				time) < 0;
+		};
+		var format = significant($justinmimbs$time_extra$Time$Extra$Second) ? _List_fromArray(
+			[
+				$ryannhg$date_format$DateFormat$text('.'),
+				$ryannhg$date_format$DateFormat$millisecondFixed
+			]) : (significant($justinmimbs$time_extra$Time$Extra$Minute) ? _List_fromArray(
+			[
+				$ryannhg$date_format$DateFormat$text(':'),
+				$ryannhg$date_format$DateFormat$secondFixed
+			]) : (significant($justinmimbs$time_extra$Time$Extra$Hour) ? _List_fromArray(
+			[
+				$ryannhg$date_format$DateFormat$hourFixed,
+				$ryannhg$date_format$DateFormat$text(':'),
+				$ryannhg$date_format$DateFormat$minuteFixed
+			]) : (significant($justinmimbs$time_extra$Time$Extra$Day) ? _List_fromArray(
+			[
+				$ryannhg$date_format$DateFormat$hourFixed,
+				$ryannhg$date_format$DateFormat$text(' '),
+				$ryannhg$date_format$DateFormat$amPmLowercase
+			]) : (significant($justinmimbs$time_extra$Time$Extra$Month) ? _List_fromArray(
+			[
+				$ryannhg$date_format$DateFormat$dayOfMonthFixed,
+				$ryannhg$date_format$DateFormat$text(' '),
+				$ryannhg$date_format$DateFormat$monthNameAbbreviated
+			]) : (significant($justinmimbs$time_extra$Time$Extra$Year) ? _List_fromArray(
+			[$ryannhg$date_format$DateFormat$monthNameFull]) : _List_fromArray(
+			[$ryannhg$date_format$DateFormat$yearNumber]))))));
+		return A3($ryannhg$date_format$DateFormat$format, format, zone, date);
+	});
+var $justinmimbs$time_extra$Time$Extra$rangeHelp = F6(
+	function (interval, step, zone, until, revList, current) {
+		rangeHelp:
+		while (true) {
+			if (_Utils_cmp(
+				$elm$time$Time$posixToMillis(current),
+				$elm$time$Time$posixToMillis(until)) < 0) {
+				var $temp$interval = interval,
+					$temp$step = step,
+					$temp$zone = zone,
+					$temp$until = until,
+					$temp$revList = A2($elm$core$List$cons, current, revList),
+					$temp$current = A4($justinmimbs$time_extra$Time$Extra$add, interval, step, zone, current);
+				interval = $temp$interval;
+				step = $temp$step;
+				zone = $temp$zone;
+				until = $temp$until;
+				revList = $temp$revList;
+				current = $temp$current;
+				continue rangeHelp;
+			} else {
+				return $elm$core$List$reverse(revList);
+			}
+		}
+	});
+var $justinmimbs$time_extra$Time$Extra$range = F5(
+	function (interval, step, zone, start, until) {
+		return A6(
+			$justinmimbs$time_extra$Time$Extra$rangeHelp,
+			interval,
+			A2($elm$core$Basics$max, 1, step),
+			zone,
+			until,
+			_List_Nil,
+			A3($justinmimbs$time_extra$Time$Extra$ceiling, interval, zone, start));
+	});
+var $gampleman$elm_visualization$Scale$Time$ticks = F3(
+	function (zone, domain, count) {
+		var _v0 = $gampleman$elm_visualization$Scale$Time$toTime(domain);
+		var start = _v0.a;
+		var end = _v0.b;
+		var target = $elm$core$Basics$abs(start - end) / count;
+		var _v1 = A2($gampleman$elm_visualization$Scale$Time$findInterval, target, $gampleman$elm_visualization$Scale$Time$tickIntervals);
+		var interval = _v1.a;
+		var step = _v1.b;
+		return A5(
+			$justinmimbs$time_extra$Time$Extra$range,
+			interval,
+			$elm$core$Basics$round(step),
+			zone,
+			domain.a,
+			domain.b);
+	});
+var $gampleman$elm_visualization$Scale$Time$scale = F3(
+	function (zone, range_, domain_) {
+		return {
+			convert: A2(
+				$gampleman$elm_visualization$Scale$Continuous$convertTransform,
+				A2($elm$core$Basics$composeR, $elm$time$Time$posixToMillis, $elm$core$Basics$toFloat),
+				$gampleman$elm_visualization$Interpolation$float),
+			domain: domain_,
+			invert: A2(
+				$gampleman$elm_visualization$Scale$Continuous$invertTransform,
+				A2($elm$core$Basics$composeR, $elm$time$Time$posixToMillis, $elm$core$Basics$toFloat),
+				A2($elm$core$Basics$composeR, $elm$core$Basics$round, $elm$time$Time$millisToPosix)),
+			nice: $gampleman$elm_visualization$Scale$Time$nice(zone),
+			range: range_,
+			rangeExtent: F2(
+				function (_v0, r) {
+					return r;
+				}),
+			tickFormat: $gampleman$elm_visualization$Scale$Time$tickFormat(zone),
+			ticks: $gampleman$elm_visualization$Scale$Time$ticks(zone)
+		};
+	});
+var $gampleman$elm_visualization$Scale$time = F3(
+	function (zone, range_, domain_) {
+		return $gampleman$elm_visualization$Scale$Scale(
+			A3($gampleman$elm_visualization$Scale$Time$scale, zone, range_, domain_));
+	});
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Line$timeDomainToContinuousDomain = function (timeDomain) {
+	return function (_v0) {
+		var x = _v0.x;
+		var y = _v0.y;
+		return {
+			x: A2(
+				$elm$core$Maybe$map,
+				function (_v1) {
+					var a = _v1.a;
+					var b = _v1.b;
+					return _Utils_Tuple2(
+						$elm$time$Time$posixToMillis(a),
+						$elm$time$Time$posixToMillis(b));
+				},
+				x),
+			y: y
+		};
+	}(timeDomain);
+};
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$adjustDomainToLogScale = function (_v0) {
+	var a = _v0.a;
+	var b = _v0.b;
+	return (!a) ? _Utils_Tuple2(1, b) : ((!b) ? _Utils_Tuple2(a, -1) : _Utils_Tuple2(a, b));
+};
+var $gampleman$elm_visualization$Scale$Log$exp = function (n) {
+	return A2($elm$core$Basics$pow, $elm$core$Basics$e, n);
+};
+var $gampleman$elm_visualization$Scale$Log$log = $elm$core$Basics$logBase($elm$core$Basics$e);
+var $gampleman$elm_visualization$Scale$Log$nice = F3(
+	function (base, _v0, _v1) {
+		var start = _v0.a;
+		var stop = _v0.b;
+		var f = A2(
+			$elm$core$Basics$composeL,
+			A2(
+				$elm$core$Basics$composeL,
+				A2(
+					$elm$core$Basics$composeL,
+					function (a) {
+						return A2($elm$core$Basics$pow, a, base);
+					},
+					$elm$core$Basics$toFloat),
+				$elm$core$Basics$floor),
+			$elm$core$Basics$logBase(base));
+		var c = A2(
+			$elm$core$Basics$composeL,
+			A2(
+				$elm$core$Basics$composeL,
+				A2(
+					$elm$core$Basics$composeL,
+					function (a) {
+						return A2($elm$core$Basics$pow, a, base);
+					},
+					$elm$core$Basics$toFloat),
+				$elm$core$Basics$ceiling),
+			$elm$core$Basics$logBase(base));
+		return _Utils_Tuple2(
+			f(start),
+			c(stop));
+	});
+var $gampleman$elm_visualization$Scale$Log$reflect = function (f) {
+	return A2(
+		$elm$core$Basics$composeR,
+		$elm$core$Basics$negate,
+		A2($elm$core$Basics$composeR, f, $elm$core$Basics$negate));
+};
+var $elm$core$String$foldr = _String_foldr;
+var $elm$core$String$toList = function (string) {
+	return A3($elm$core$String$foldr, $elm$core$List$cons, _List_Nil, string);
+};
+var $gampleman$elm_visualization$Scale$Log$formatExponential = function (num) {
+	var parts = A2(
+		$elm$core$String$split,
+		'.',
+		$elm$core$String$fromFloat(num));
+	var helper = F3(
+		function (level, digits, decimals) {
+			helper:
+			while (true) {
+				var _v0 = _Utils_Tuple2(digits, decimals);
+				if (_v0.a.b) {
+					if (!_v0.a.b.b) {
+						if (('0' === _v0.a.a.valueOf()) && _v0.b.b) {
+							var _v1 = _v0.a;
+							var _v2 = _v0.b;
+							var x = _v2.a;
+							var xs = _v2.b;
+							var $temp$level = level - 1,
+								$temp$digits = _List_fromArray(
+								[x]),
+								$temp$decimals = xs;
+							level = $temp$level;
+							digits = $temp$digits;
+							decimals = $temp$decimals;
+							continue helper;
+						} else {
+							var _v3 = _v0.a;
+							var dig = _v3.a;
+							var dec = _v0.b;
+							return _Utils_ap(
+								A2($elm$core$String$cons, dig, 'e'),
+								_Utils_ap(
+									(level >= 0) ? '+' : '-',
+									$elm$core$String$fromInt(
+										$elm$core$Basics$abs(level))));
+						}
+					} else {
+						var _v4 = _v0.a;
+						var x = _v4.a;
+						var xs = _v4.b;
+						var dec = _v0.b;
+						var $temp$level = level + 1,
+							$temp$digits = xs,
+							$temp$decimals = A2($elm$core$List$cons, x, dec);
+						level = $temp$level;
+						digits = $temp$digits;
+						decimals = $temp$decimals;
+						continue helper;
+					}
+				} else {
+					if (_v0.b.b) {
+						var _v5 = _v0.b;
+						var x = _v5.a;
+						var xs = _v5.b;
+						var $temp$level = level - 1,
+							$temp$digits = _List_fromArray(
+							[x]),
+							$temp$decimals = xs;
+						level = $temp$level;
+						digits = $temp$digits;
+						decimals = $temp$decimals;
+						continue helper;
+					} else {
+						return '';
+					}
+				}
+			}
+		});
+	var _v6 = function () {
+		_v7$2:
+		while (true) {
+			if (parts.b) {
+				if (parts.b.b) {
+					if (!parts.b.b.b) {
+						var a = parts.a;
+						var _v8 = parts.b;
+						var b = _v8.a;
+						return _Utils_Tuple2(a, b);
+					} else {
+						break _v7$2;
+					}
+				} else {
+					var a = parts.a;
+					return _Utils_Tuple2(a, '0');
+				}
+			} else {
+				break _v7$2;
+			}
+		}
+		return _Utils_Tuple2('0', '0');
+	}();
+	var digits0 = _v6.a;
+	var decimals0 = _v6.b;
+	return A3(
+		helper,
+		0,
+		$elm$core$List$reverse(
+			$elm$core$String$toList(digits0)),
+		$elm$core$String$toList(decimals0));
+};
+var $gampleman$elm_visualization$Scale$Log$formatFixed = F2(
+	function (precision, value) {
+		var floored = $elm$core$Basics$floor(value);
+		var digits = (!floored) ? 0 : $elm$core$String$length(
+			$elm$core$String$fromInt(floored));
+		var power = A2($elm$core$Basics$pow, 10, precision - digits);
+		return $elm$core$String$fromFloat(
+			$elm$core$Basics$round(value * power) / power);
+	});
+var $gampleman$elm_visualization$Scale$Log$makeLogs = F2(
+	function (start, base) {
+		return (start < 0) ? function (x) {
+			return -A2($elm$core$Basics$logBase, base, -x);
+		} : $elm$core$Basics$logBase(base);
+	});
+var $gampleman$elm_visualization$Scale$Log$makePows = F2(
+	function (start, base) {
+		return (start < 0) ? function (x) {
+			return -A2($elm$core$Basics$pow, base, -x);
+		} : function (x) {
+			return A2($elm$core$Basics$pow, base, x);
+		};
+	});
+var $gampleman$elm_visualization$Scale$Log$ticks = F3(
+	function (base, _v0, count) {
+		var domStart = _v0.a;
+		var domEnd = _v0.b;
+		var n = count;
+		var _v1 = (_Utils_cmp(domStart, domEnd) < 1) ? _Utils_Tuple3(domStart, domEnd, $elm$core$Basics$identity) : _Utils_Tuple3(domEnd, domStart, $elm$core$List$reverse);
+		var start = _v1.a;
+		var end = _v1.b;
+		var reverse = _v1.c;
+		var _v2 = (start < 0) ? _Utils_Tuple2(
+			-A2($elm$core$Basics$logBase, base, -start),
+			-A2($elm$core$Basics$logBase, base, -end)) : _Utils_Tuple2(
+			A2($elm$core$Basics$logBase, base, start),
+			A2($elm$core$Basics$logBase, base, end));
+		var topi = _v2.a;
+		var topj = _v2.b;
+		var pows = A2($gampleman$elm_visualization$Scale$Log$makePows, start, base);
+		var negativeHelper = F3(
+			function (i, j, k) {
+				negativeHelper:
+				while (true) {
+					var p = pows(i);
+					var t = p * k;
+					if (_Utils_cmp(i, j) < 0) {
+						if (k >= 1) {
+							if (_Utils_cmp(t, start) < 0) {
+								var $temp$i = i,
+									$temp$j = j,
+									$temp$k = k - 1;
+								i = $temp$i;
+								j = $temp$j;
+								k = $temp$k;
+								continue negativeHelper;
+							} else {
+								if (_Utils_cmp(t, end) > 0) {
+									var $temp$i = i + 1,
+										$temp$j = j,
+										$temp$k = base - 1;
+									i = $temp$i;
+									j = $temp$j;
+									k = $temp$k;
+									continue negativeHelper;
+								} else {
+									return A2(
+										$elm$core$List$cons,
+										t,
+										A3(negativeHelper, i, j, k - 1));
+								}
+							}
+						} else {
+							var $temp$i = i + 1,
+								$temp$j = j,
+								$temp$k = base - 1;
+							i = $temp$i;
+							j = $temp$j;
+							k = $temp$k;
+							continue negativeHelper;
+						}
+					} else {
+						return _List_Nil;
+					}
+				}
+			});
+		var positiveHelper = F3(
+			function (i, j, k) {
+				positiveHelper:
+				while (true) {
+					var p = pows(i);
+					var t = p * k;
+					if (_Utils_cmp(i, j) < 0) {
+						if (_Utils_cmp(k, base) < 0) {
+							if (_Utils_cmp(t, start) < 0) {
+								var $temp$i = i,
+									$temp$j = j,
+									$temp$k = k + 1;
+								i = $temp$i;
+								j = $temp$j;
+								k = $temp$k;
+								continue positiveHelper;
+							} else {
+								if (_Utils_cmp(t, end) > 0) {
+									var $temp$i = i + 1,
+										$temp$j = j,
+										$temp$k = 1;
+									i = $temp$i;
+									j = $temp$j;
+									k = $temp$k;
+									continue positiveHelper;
+								} else {
+									return A2(
+										$elm$core$List$cons,
+										t,
+										A3(positiveHelper, i, j, k + 1));
+								}
+							}
+						} else {
+							var $temp$i = i + 1,
+								$temp$j = j,
+								$temp$k = 1;
+							i = $temp$i;
+							j = $temp$j;
+							k = $temp$k;
+							continue positiveHelper;
+						}
+					} else {
+						return _List_Nil;
+					}
+				}
+			});
+		return (_Utils_eq(
+			$elm$core$Basics$round(base),
+			base) && (_Utils_cmp(topj - topi, n) < 0)) ? ((start > 0) ? reverse(
+			A3(
+				positiveHelper,
+				$elm$core$Basics$round(topi) - 1,
+				$elm$core$Basics$round(topj) + 1,
+				1)) : reverse(
+			A3(
+				negativeHelper,
+				$elm$core$Basics$round(topi) - 1,
+				$elm$core$Basics$round(topj) + 1,
+				base - 1))) : reverse(
+			A2(
+				$elm$core$List$map,
+				function (a) {
+					return pows(a);
+				},
+				A3(
+					$gampleman$elm_visualization$Statistics$ticks,
+					topi,
+					topj,
+					$elm$core$Basics$round(
+						A2($elm$core$Basics$min, topj - topi, n)))));
+	});
+var $gampleman$elm_visualization$Scale$Log$tickFormat = F3(
+	function (base, _v0, count) {
+		var start = _v0.a;
+		var end = _v0.b;
+		var pows = A2($gampleman$elm_visualization$Scale$Log$makePows, start, base);
+		var logs = A2($gampleman$elm_visualization$Scale$Log$makeLogs, start, base);
+		var k = A2(
+			$elm$core$Basics$max,
+			1,
+			(base * count) / $elm$core$List$length(
+				A3(
+					$gampleman$elm_visualization$Scale$Log$ticks,
+					base,
+					_Utils_Tuple2(start, end),
+					10)));
+		return function (d) {
+			var i = d / pows(
+				$elm$core$Basics$round(
+					logs(d)));
+			var p = (_Utils_cmp(i * base, base - 0.5) < 0) ? (i * base) : i;
+			return (_Utils_cmp(p, k) < 1) ? ((base === 10) ? $gampleman$elm_visualization$Scale$Log$formatExponential(d) : A2($gampleman$elm_visualization$Scale$Log$formatFixed, 12, d)) : '';
+		};
+	});
+var $gampleman$elm_visualization$Scale$Log$scale = F3(
+	function (base, range_, domain_) {
+		var _v0 = (domain_.a < 0) ? _Utils_Tuple2(
+			$gampleman$elm_visualization$Scale$Log$reflect($gampleman$elm_visualization$Scale$Log$log),
+			$gampleman$elm_visualization$Scale$Log$reflect($gampleman$elm_visualization$Scale$Log$exp)) : _Utils_Tuple2($gampleman$elm_visualization$Scale$Log$log, $gampleman$elm_visualization$Scale$Log$exp);
+		var transform = _v0.a;
+		var untransform = _v0.b;
+		return {
+			convert: A2($gampleman$elm_visualization$Scale$Continuous$convertTransform, transform, $gampleman$elm_visualization$Interpolation$float),
+			domain: domain_,
+			invert: A2($gampleman$elm_visualization$Scale$Continuous$invertTransform, transform, untransform),
+			nice: $gampleman$elm_visualization$Scale$Log$nice(base),
+			range: range_,
+			rangeExtent: F2(
+				function (_v1, r) {
+					return r;
+				}),
+			tickFormat: $gampleman$elm_visualization$Scale$Log$tickFormat(base),
+			ticks: $gampleman$elm_visualization$Scale$Log$ticks(base)
+		};
+	});
+var $gampleman$elm_visualization$Scale$log = F3(
+	function (base, range_, domain_) {
+		return $gampleman$elm_visualization$Scale$Scale(
+			A3($gampleman$elm_visualization$Scale$Log$scale, base, range_, domain_));
+	});
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$toContinousScale = F3(
+	function (range, domain, scale) {
+		if (scale.$ === 'LogScale') {
+			var base = scale.a;
+			return A3(
+				$gampleman$elm_visualization$Scale$log,
+				base,
+				range,
+				$data_viz_lab$elm_chart_builder$Chart$Internal$Type$adjustDomainToLogScale(domain));
+		} else {
+			return A2($gampleman$elm_visualization$Scale$linear, range, domain);
+		}
+	});
+var $elm_community$typed_svg$TypedSvg$Types$Opacity = function (a) {
+	return {$: 'Opacity', a: a};
+};
+var $elm_community$typed_svg$TypedSvg$Types$Paint = function (a) {
+	return {$: 'Paint', a: a};
+};
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Constants$annotationClassName = 'chart-builder__annotation';
+var $avh4$elm_color$Color$black = A4($avh4$elm_color$Color$RgbaSpace, 0 / 255, 0 / 255, 0 / 255, 1.0);
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$getAnnotationVLine = function (annotations) {
+	return $elm$core$List$head(
+		A2(
+			$elm$core$List$filterMap,
+			function (annotation) {
+				if (annotation.$ === 'AnnotationXBarHint') {
+					var p = annotation.a;
+					return $elm$core$Maybe$Just(p);
+				} else {
+					return $elm$core$Maybe$Nothing;
+				}
+			},
+			annotations));
+};
+var $elm_community$typed_svg$TypedSvg$line = $elm_community$typed_svg$TypedSvg$Core$node('line');
+var $elm_community$typed_svg$TypedSvg$TypesToStrings$opacityToString = function (opacity) {
+	if (opacity.$ === 'Opacity') {
+		var n = opacity.a;
+		return $elm$core$String$fromFloat(n);
+	} else {
+		return 'inherit';
+	}
+};
+var $elm_community$typed_svg$TypedSvg$Attributes$opacity = A2(
+	$elm$core$Basics$composeL,
+	$elm_community$typed_svg$TypedSvg$Core$attribute('opacity'),
+	$elm_community$typed_svg$TypedSvg$TypesToStrings$opacityToString);
+var $elm_community$typed_svg$TypedSvg$TypesToStrings$paintToString = function (paint) {
+	switch (paint.$) {
+		case 'Paint':
+			var color = paint.a;
+			return $avh4$elm_color$Color$toCssString(color);
+		case 'Reference':
+			var string = paint.a;
+			return $elm$core$String$concat(
+				_List_fromArray(
+					['url(#', string, ')']));
+		case 'ContextFill':
+			return 'context-fill';
+		case 'ContextStroke':
+			return 'context-stroke';
+		default:
+			return 'none';
+	}
+};
+var $elm_community$typed_svg$TypedSvg$Attributes$stroke = A2(
+	$elm$core$Basics$composeL,
+	$elm_community$typed_svg$TypedSvg$Core$attribute('stroke'),
+	$elm_community$typed_svg$TypedSvg$TypesToStrings$paintToString);
+var $elm_community$typed_svg$TypedSvg$Attributes$strokeWidth = function (length) {
+	return A2(
+		$elm_community$typed_svg$TypedSvg$Core$attribute,
+		'stroke-width',
+		$elm_community$typed_svg$TypedSvg$TypesToStrings$lengthToString(length));
+};
+var $elm_community$typed_svg$TypedSvg$Attributes$InPx$strokeWidth = function (value) {
+	return $elm_community$typed_svg$TypedSvg$Attributes$strokeWidth(
+		$elm_community$typed_svg$TypedSvg$Types$px(value));
+};
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Constants$vLineAnnotationClassName = 'chart-builder__annotation--v-line';
+var $elm_community$typed_svg$TypedSvg$Attributes$x1 = function (position) {
+	return A2(
+		$elm_community$typed_svg$TypedSvg$Core$attribute,
+		'x1',
+		$elm_community$typed_svg$TypedSvg$TypesToStrings$lengthToString(position));
+};
+var $elm_community$typed_svg$TypedSvg$Attributes$InPx$x1 = function (value) {
+	return $elm_community$typed_svg$TypedSvg$Attributes$x1(
+		$elm_community$typed_svg$TypedSvg$Types$px(value));
+};
+var $elm_community$typed_svg$TypedSvg$Attributes$x2 = function (position) {
+	return A2(
+		$elm_community$typed_svg$TypedSvg$Core$attribute,
+		'x2',
+		$elm_community$typed_svg$TypedSvg$TypesToStrings$lengthToString(position));
+};
+var $elm_community$typed_svg$TypedSvg$Attributes$InPx$x2 = function (value) {
+	return $elm_community$typed_svg$TypedSvg$Attributes$x2(
+		$elm_community$typed_svg$TypedSvg$Types$px(value));
+};
+var $elm_community$typed_svg$TypedSvg$Attributes$y1 = function (position) {
+	return A2(
+		$elm_community$typed_svg$TypedSvg$Core$attribute,
+		'y1',
+		$elm_community$typed_svg$TypedSvg$TypesToStrings$lengthToString(position));
+};
+var $elm_community$typed_svg$TypedSvg$Attributes$InPx$y1 = function (value) {
+	return $elm_community$typed_svg$TypedSvg$Attributes$y1(
+		$elm_community$typed_svg$TypedSvg$Types$px(value));
+};
+var $elm_community$typed_svg$TypedSvg$Attributes$y2 = function (position) {
+	return A2(
+		$elm_community$typed_svg$TypedSvg$Core$attribute,
+		'y2',
+		$elm_community$typed_svg$TypedSvg$TypesToStrings$lengthToString(position));
+};
+var $elm_community$typed_svg$TypedSvg$Attributes$InPx$y2 = function (value) {
+	return $elm_community$typed_svg$TypedSvg$Attributes$y2(
+		$elm_community$typed_svg$TypedSvg$Types$px(value));
+};
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Line$vLineAnnotation = function (c) {
+	var style = A2(
+		$elm$core$Maybe$withDefault,
+		_List_Nil,
+		A2(
+			$elm$core$Maybe$map,
+			$elm$core$Tuple$second,
+			$data_viz_lab$elm_chart_builder$Chart$Internal$Type$getAnnotationVLine(c.annotations)));
+	var annotation = A2(
+		$elm$core$Maybe$map,
+		$elm$core$Tuple$first,
+		$data_viz_lab$elm_chart_builder$Chart$Internal$Type$getAnnotationVLine(c.annotations));
+	if (annotation.$ === 'Just') {
+		var a = annotation.a;
+		return _List_fromArray(
+			[
+				A2(
+				$elm_community$typed_svg$TypedSvg$g,
+				_List_fromArray(
+					[
+						$elm_community$typed_svg$TypedSvg$Attributes$transform(
+						_List_fromArray(
+							[
+								A2($elm_community$typed_svg$TypedSvg$Types$Translate, c.margin.left, c.margin.top)
+							])),
+						$elm_community$typed_svg$TypedSvg$Attributes$class(
+						_List_fromArray(
+							[$data_viz_lab$elm_chart_builder$Chart$Internal$Constants$componentClassName, $data_viz_lab$elm_chart_builder$Chart$Internal$Constants$annotationClassName, $data_viz_lab$elm_chart_builder$Chart$Internal$Constants$vLineAnnotationClassName]))
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm_community$typed_svg$TypedSvg$line,
+						A2(
+							$elm$core$List$cons,
+							$elm_community$typed_svg$TypedSvg$Attributes$style(
+								A2($data_viz_lab$elm_chart_builder$Chart$Internal$Helpers$mergeStyles, style, '')),
+							_List_fromArray(
+								[
+									$elm_community$typed_svg$TypedSvg$Attributes$InPx$x1(a.xPosition),
+									$elm_community$typed_svg$TypedSvg$Attributes$InPx$x2(a.xPosition),
+									$elm_community$typed_svg$TypedSvg$Attributes$InPx$y1(0),
+									$elm_community$typed_svg$TypedSvg$Attributes$InPx$y2(c.height),
+									$elm_community$typed_svg$TypedSvg$Attributes$InPx$strokeWidth(1),
+									$elm_community$typed_svg$TypedSvg$Attributes$opacity(
+									$elm_community$typed_svg$TypedSvg$Types$Opacity(0.7)),
+									$elm_community$typed_svg$TypedSvg$Attributes$stroke(
+									$elm_community$typed_svg$TypedSvg$Types$Paint($avh4$elm_color$Color$black))
+								])),
+						_List_Nil)
+					]))
+			]);
+	} else {
+		return _List_Nil;
+	}
+};
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Line$renderLineGrouped = function (_v0) {
+	var data = _v0.a;
+	var config = _v0.b;
+	var timeData = $data_viz_lab$elm_chart_builder$Chart$Internal$Type$dataContinuousGroupToDataTime(data);
+	var timeDomain = A3(
+		$data_viz_lab$elm_chart_builder$Chart$Internal$Type$getDomainTimeFromData,
+		$elm$core$Maybe$Nothing,
+		$data_viz_lab$elm_chart_builder$Chart$Internal$Type$getDomainTime(config),
+		timeData);
+	var continuousData = $data_viz_lab$elm_chart_builder$Chart$Internal$Type$dataContinuousGroupToDataContinuous(data);
+	var continuousDomain = function () {
+		if (data.$ === 'DataTime') {
+			return $data_viz_lab$elm_chart_builder$Chart$Internal$Line$timeDomainToContinuousDomain(timeDomain);
+		} else {
+			return A3(
+				$data_viz_lab$elm_chart_builder$Chart$Internal$Type$getDomainContinuousFromData,
+				$elm$core$Maybe$Nothing,
+				$data_viz_lab$elm_chart_builder$Chart$Internal$Type$getDomainContinuous(config),
+				continuousData);
+		}
+	}();
+	var classNames = $elm$html$Html$Attributes$classList(
+		_List_fromArray(
+			[
+				_Utils_Tuple2($data_viz_lab$elm_chart_builder$Chart$Internal$Constants$rootClassName, true),
+				_Utils_Tuple2($data_viz_lab$elm_chart_builder$Chart$Internal$Constants$lineClassName, true)
+			]));
+	var c = $data_viz_lab$elm_chart_builder$Chart$Internal$Type$fromConfig(config);
+	var h = c.height;
+	var yRange = _Utils_Tuple2(h, 0);
+	var m = c.margin;
+	var outerH = (h + m.top) + m.bottom;
+	var w = c.width;
+	var outerW = (w + m.left) + m.right;
+	var xRange = _Utils_Tuple2(0, w);
+	var xContinuousScale = A2(
+		$gampleman$elm_visualization$Scale$linear,
+		xRange,
+		A2(
+			$elm$core$Maybe$withDefault,
+			_Utils_Tuple2(0, 0),
+			continuousDomain.x));
+	var xTimeScale = function () {
+		if (data.$ === 'DataTime') {
+			return $elm$core$Maybe$Just(
+				A3(
+					$gampleman$elm_visualization$Scale$time,
+					c.zone,
+					xRange,
+					A2(
+						$elm$core$Maybe$withDefault,
+						_Utils_Tuple2(
+							$elm$time$Time$millisToPosix(0),
+							$elm$time$Time$millisToPosix(0)),
+						timeDomain.x)));
+		} else {
+			return $elm$core$Maybe$Nothing;
+		}
+	}();
+	var yScale = A3(
+		$data_viz_lab$elm_chart_builder$Chart$Internal$Type$toContinousScale,
+		yRange,
+		A2(
+			$elm$core$Maybe$withDefault,
+			_Utils_Tuple2(0, 0),
+			continuousDomain.y),
+		c.yScale);
+	var events = $elm$core$List$concat(
+		A2(
+			$elm$core$List$map,
+			function (e) {
+				if (e.$ === 'HoverOne') {
+					var f = e.a;
+					return A4(
+						$data_viz_lab$elm_chart_builder$Chart$Internal$Event$hoverOne,
+						c,
+						continuousData,
+						_Utils_Tuple2(xContinuousScale, yScale),
+						f);
+				} else {
+					var f = e.a;
+					return A4(
+						$data_viz_lab$elm_chart_builder$Chart$Internal$Event$hoverAll,
+						c,
+						continuousData,
+						_Utils_Tuple2(xContinuousScale, yScale),
+						f);
+				}
+			},
+			c.events));
+	var _v1 = $elm$core$List$unzip(
+		A2(
+			$elm$core$List$map,
+			function (d) {
+				var points = A2($elm$core$List$sortBy, $elm$core$Tuple$first, d.points);
+				return _Utils_Tuple2(
+					_Utils_update(
+						d,
+						{points: points}),
+					points);
+			},
+			continuousData));
+	var sortedContinuousData = _v1.a;
+	var svgEl = A2(
+		$elm_community$typed_svg$TypedSvg$svg,
+		_Utils_ap(
+			_List_fromArray(
+				[
+					A4($elm_community$typed_svg$TypedSvg$Attributes$viewBox, 0, 0, outerW, outerH),
+					$elm_community$typed_svg$TypedSvg$Attributes$InPx$width(outerW),
+					$elm_community$typed_svg$TypedSvg$Attributes$InPx$height(outerH),
+					$data_viz_lab$elm_chart_builder$Chart$Internal$Type$role('img')
+				]),
+			_Utils_ap(
+				$data_viz_lab$elm_chart_builder$Chart$Internal$Type$ariaLabelledbyContent(c),
+				events)),
+		_Utils_ap(
+			$data_viz_lab$elm_chart_builder$Chart$Internal$Line$vLineAnnotation(c),
+			_Utils_ap(
+				$data_viz_lab$elm_chart_builder$Chart$Internal$Line$symbolElements(config),
+				_Utils_ap(
+					$data_viz_lab$elm_chart_builder$Chart$Internal$Type$descAndTitle(c),
+					_Utils_ap(
+						A2($data_viz_lab$elm_chart_builder$Chart$Internal$Line$continuousYAxis, c, yScale),
+						_Utils_ap(
+							A3(
+								$data_viz_lab$elm_chart_builder$Chart$Internal$Line$continuousOrTimeAxisGenerator,
+								xTimeScale,
+								xContinuousScale,
+								_Utils_Tuple2(data, config)),
+							A4($data_viz_lab$elm_chart_builder$Chart$Internal$Line$drawContinuousLine, config, xContinuousScale, yScale, sortedContinuousData)))))));
+	var _v2 = c.accessibilityContent;
+	if (_v2.$ === 'AccessibilityNone') {
+		return A2(
+			$elm$html$Html$div,
+			_List_fromArray(
+				[classNames]),
+			_List_fromArray(
+				[svgEl]));
+	} else {
+		return A2(
+			$elm$html$Html$div,
+			_List_fromArray(
+				[classNames]),
+			_List_fromArray(
+				[
+					A2(
+					$elm$html$Html$figure,
+					_List_Nil,
+					_List_fromArray(
+						[
+							svgEl,
+							A2($data_viz_lab$elm_chart_builder$Chart$Internal$Line$tableElement, config, data)
+						]))
+				]));
+	}
+};
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$dataContinuousGroupToDataContinuousStacked = function (data) {
+	return A2(
+		$elm$core$List$indexedMap,
+		F2(
+			function (i, d) {
+				return _Utils_Tuple2(
+					A2(
+						$elm$core$Maybe$withDefault,
+						$elm$core$String$fromInt(i),
+						d.groupLabel),
+					A2($elm$core$List$map, $elm$core$Tuple$second, d.points));
+			}),
+		data);
+};
+var $folkertdev$one_true_path_experiment$SubPath$firstPoint = function (_v0) {
+	var moveto = _v0.moveto;
+	var p = moveto.a;
+	return p;
+};
+var $folkertdev$one_true_path_experiment$SubPath$map2 = F3(
+	function (f, sub1, sub2) {
+		var _v0 = _Utils_Tuple2(sub1, sub2);
+		if (_v0.a.$ === 'Empty') {
+			if (_v0.b.$ === 'Empty') {
+				var _v1 = _v0.a;
+				var _v2 = _v0.b;
+				return $folkertdev$one_true_path_experiment$SubPath$Empty;
+			} else {
+				var _v3 = _v0.a;
+				var subpath = _v0.b;
+				return subpath;
+			}
+		} else {
+			if (_v0.b.$ === 'Empty') {
+				var subpath = _v0.a;
+				var _v4 = _v0.b;
+				return subpath;
+			} else {
+				var a = _v0.a.a;
+				var b = _v0.b.a;
+				return A2(f, a, b);
+			}
+		}
+	});
+var $folkertdev$elm_deque$Deque$mapAbstract = F2(
+	function (f, _v0) {
+		var _abstract = _v0.a;
+		return $folkertdev$elm_deque$Deque$Deque(
+			f(_abstract));
+	});
+var $folkertdev$elm_deque$Deque$pushBack = F2(
+	function (elem, _v0) {
+		var deque = _v0.a;
+		return A2(
+			$folkertdev$elm_deque$Deque$mapAbstract,
+			$folkertdev$elm_deque$Internal$rebalance,
+			$folkertdev$elm_deque$Deque$Deque(
+				{
+					front: deque.front,
+					rear: A2($elm$core$List$cons, elem, deque.rear),
+					sizeF: deque.sizeF,
+					sizeR: deque.sizeR + 1
+				}));
+	});
+var $folkertdev$one_true_path_experiment$SubPath$pushBack = F2(
+	function (drawto, data) {
+		return _Utils_update(
+			data,
+			{
+				drawtos: A2($folkertdev$elm_deque$Deque$pushBack, drawto, data.drawtos)
+			});
+	});
+var $folkertdev$elm_deque$Internal$length = function (deque) {
+	return deque.sizeF + deque.sizeR;
+};
+var $folkertdev$elm_deque$Internal$isEmpty = function (deque) {
+	return !$folkertdev$elm_deque$Internal$length(deque);
+};
+var $folkertdev$elm_deque$Deque$isEmpty = A2($elm$core$Basics$composeL, $folkertdev$elm_deque$Internal$isEmpty, $folkertdev$elm_deque$Deque$unwrap);
+var $folkertdev$elm_deque$Deque$append = F2(
+	function (p, q) {
+		var x = p.a;
+		var y = q.a;
+		return $folkertdev$elm_deque$Deque$isEmpty(p) ? q : ($folkertdev$elm_deque$Deque$isEmpty(q) ? p : $folkertdev$elm_deque$Deque$Deque(
+			{
+				front: _Utils_ap(
+					x.front,
+					$elm$core$List$reverse(x.rear)),
+				rear: $elm$core$List$reverse(
+					_Utils_ap(
+						y.front,
+						$elm$core$List$reverse(y.rear))),
+				sizeF: x.sizeF + x.sizeR,
+				sizeR: y.sizeF + y.sizeR
+			}));
+	});
+var $folkertdev$one_true_path_experiment$SubPath$unsafeConcatenate = F2(
+	function (a, b) {
+		return _Utils_update(
+			a,
+			{
+				drawtos: A2($folkertdev$elm_deque$Deque$append, a.drawtos, b.drawtos)
+			});
+	});
+var $folkertdev$one_true_path_experiment$SubPath$connect = function () {
+	var helper = F2(
+		function (right, left) {
+			return $folkertdev$one_true_path_experiment$SubPath$SubPath(
+				A2(
+					$folkertdev$one_true_path_experiment$SubPath$unsafeConcatenate,
+					A2(
+						$folkertdev$one_true_path_experiment$SubPath$pushBack,
+						$folkertdev$one_true_path_experiment$LowLevel$Command$lineTo(
+							_List_fromArray(
+								[
+									$folkertdev$one_true_path_experiment$SubPath$firstPoint(right)
+								])),
+						left),
+					right));
+		});
+	return $folkertdev$one_true_path_experiment$SubPath$map2(helper);
+}();
+var $gampleman$elm_visualization$Shape$Generators$area = F2(
+	function (curve, data) {
+		var makeShape = F2(
+			function (topline, bottomline) {
+				return A2(
+					$folkertdev$one_true_path_experiment$SubPath$connect,
+					curve(bottomline),
+					curve(topline));
+			});
+		var makeCurves = F3(
+			function (acc, datum, _v3) {
+				var prev = _v3.a;
+				var list = _v3.b;
+				var _v0 = _Utils_Tuple3(prev, datum, list);
+				if (_v0.b.$ === 'Nothing') {
+					var _v1 = _v0.b;
+					var l = _v0.c;
+					return _Utils_Tuple2(false, l);
+				} else {
+					if (!_v0.a) {
+						var point = _v0.b.a;
+						var l = _v0.c;
+						return _Utils_Tuple2(
+							true,
+							A2(
+								$elm$core$List$cons,
+								_List_fromArray(
+									[
+										acc(point)
+									]),
+								l));
+					} else {
+						if (_v0.c.b) {
+							var p1 = _v0.b.a;
+							var _v2 = _v0.c;
+							var ps = _v2.a;
+							var l = _v2.b;
+							return _Utils_Tuple2(
+								true,
+								A2(
+									$elm$core$List$cons,
+									A2(
+										$elm$core$List$cons,
+										acc(p1),
+										ps),
+									l));
+						} else {
+							var p1 = _v0.b.a;
+							var l = _v0.c;
+							return _Utils_Tuple2(
+								true,
+								A2(
+									$elm$core$List$cons,
+									_List_fromArray(
+										[
+											acc(p1)
+										]),
+									l));
+						}
+					}
+				}
+			});
+		var topLineData = A3(
+			$elm$core$List$foldr,
+			makeCurves($elm$core$Tuple$first),
+			_Utils_Tuple2(false, _List_Nil),
+			data).b;
+		var bottomLineData = A2(
+			$elm$core$List$map,
+			$elm$core$List$reverse,
+			A3(
+				$elm$core$List$foldr,
+				makeCurves($elm$core$Tuple$second),
+				_Utils_Tuple2(false, _List_Nil),
+				data).b);
+		return A3($elm$core$List$map2, makeShape, topLineData, bottomLineData);
+	});
+var $gampleman$elm_visualization$Shape$area = $gampleman$elm_visualization$Shape$Generators$area;
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Line$areaLabel = F5(
+	function (config, xScale, yScale, _v0, item) {
+		var _v1 = item.groupLabel;
+		if (_v1.$ === 'Just') {
+			var label = _v1.a;
+			var conf = $data_viz_lab$elm_chart_builder$Chart$Internal$Type$fromConfig(config);
+			var _v2 = A2(
+				$elm$core$Maybe$withDefault,
+				_Utils_Tuple2(0, 0),
+				A2(
+					$elm$core$Maybe$map,
+					function (_v3) {
+						var stack = _v3.a;
+						var _v4 = _v3.b;
+						var x = _v4.a;
+						return _Utils_Tuple2(x, ((stack.b - stack.a) / 2) + stack.a);
+					},
+					$elm$core$List$head(
+						$elm$core$List$reverse(item.points))));
+			var xVal = _v2.a;
+			var yVal = _v2.b;
+			var xPos = $data_viz_lab$elm_chart_builder$Chart$Internal$Helpers$floorFloat(
+				A2($gampleman$elm_visualization$Scale$convert, xScale, xVal));
+			var yPos = $data_viz_lab$elm_chart_builder$Chart$Internal$Helpers$floorFloat(
+				A2($gampleman$elm_visualization$Scale$convert, yScale, yVal));
+			var txt = $elm_community$typed_svg$TypedSvg$text_(
+				_List_fromArray(
+					[
+						$elm_community$typed_svg$TypedSvg$Attributes$InPx$y(yPos),
+						$elm_community$typed_svg$TypedSvg$Attributes$InPx$x(xPos + $data_viz_lab$elm_chart_builder$Chart$Internal$Line$labelGap),
+						$elm_community$typed_svg$TypedSvg$Attributes$textAnchor($elm_community$typed_svg$TypedSvg$Types$AnchorStart),
+						$elm_community$typed_svg$TypedSvg$Attributes$dominantBaseline($elm_community$typed_svg$TypedSvg$Types$DominantBaselineMiddle),
+						$elm_community$typed_svg$TypedSvg$Attributes$class(
+						_List_fromArray(
+							[$data_viz_lab$elm_chart_builder$Chart$Internal$Constants$labelClassName]))
+					]));
+			var _v5 = conf.showLabels;
+			if (_v5.$ === 'XGroupLabel') {
+				return txt(
+					_List_fromArray(
+						[
+							$elm_community$typed_svg$TypedSvg$Core$text(label)
+						]));
+			} else {
+				return A2($elm_community$typed_svg$TypedSvg$text_, _List_Nil, _List_Nil);
+			}
+		} else {
+			return A2($elm_community$typed_svg$TypedSvg$text_, _List_Nil, _List_Nil);
+		}
+	});
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Constants$areaShapeClassName = 'chart-builder__area';
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Line$drawAreas = F5(
+	function (config, xScale, yScale, stackedResult, combinedData) {
+		var values = stackedResult.values;
+		var mapper = function (pointWithStack) {
+			var xCoord = A2($gampleman$elm_visualization$Scale$convert, xScale, pointWithStack.b.a);
+			var _v0 = pointWithStack.a;
+			var y1 = _v0.a;
+			var y2 = _v0.b;
+			var _v1 = (_Utils_cmp(y1, y2) < 0) ? _Utils_Tuple2(y1, y2) : _Utils_Tuple2(y2, y1);
+			var low = _v1.a;
+			var high = _v1.b;
+			return $elm$core$Maybe$Just(
+				_Utils_Tuple2(
+					_Utils_Tuple2(
+						xCoord,
+						A2($gampleman$elm_visualization$Scale$convert, yScale, low)),
+					_Utils_Tuple2(
+						xCoord,
+						A2($gampleman$elm_visualization$Scale$convert, yScale, high))));
+		};
+		var combinedDataWithStack = A3(
+			$elm$core$List$map2,
+			F2(
+				function (v, combined) {
+					return {
+						groupLabel: combined.groupLabel,
+						points: A2($elm_community$list_extra$List$Extra$zip, v, combined.points)
+					};
+				}),
+			values,
+			combinedData);
+		var c = $data_viz_lab$elm_chart_builder$Chart$Internal$Type$fromConfig(config);
+		var m = c.margin;
+		var styles = function (idx) {
+			return $elm_community$typed_svg$TypedSvg$Attributes$style(
+				A2(
+					$data_viz_lab$elm_chart_builder$Chart$Internal$Helpers$mergeStyles,
+					c.coreStyle,
+					A2(
+						$data_viz_lab$elm_chart_builder$Chart$Internal$Helpers$mergeStyles,
+						_List_Nil,
+						A3(
+							$data_viz_lab$elm_chart_builder$Chart$Internal$Type$colorStyle,
+							c,
+							$elm$core$Maybe$Just(idx),
+							$elm$core$Maybe$Nothing))));
+		};
+		var toArea = function (combinedWithStack) {
+			return A2(
+				$gampleman$elm_visualization$Shape$area,
+				c.curve,
+				A2($elm$core$List$map, mapper, combinedWithStack.points));
+		};
+		var renderStream = F2(
+			function (idx, combinedWithStack) {
+				return A2(
+					$folkertdev$one_true_path_experiment$Path$element,
+					toArea(combinedWithStack),
+					_List_fromArray(
+						[
+							$elm_community$typed_svg$TypedSvg$Attributes$class(
+							_List_fromArray(
+								[
+									$data_viz_lab$elm_chart_builder$Chart$Internal$Constants$areaShapeClassName,
+									$data_viz_lab$elm_chart_builder$Chart$Internal$Constants$areaShapeClassName + ('-' + $elm$core$String$fromInt(idx))
+								])),
+							styles(idx)
+						]));
+			});
+		var paths = A2($elm$core$List$indexedMap, renderStream, combinedDataWithStack);
+		return _List_fromArray(
+			[
+				A2(
+				$elm_community$typed_svg$TypedSvg$g,
+				_List_fromArray(
+					[
+						$elm_community$typed_svg$TypedSvg$Attributes$transform(
+						_List_fromArray(
+							[
+								A2($elm_community$typed_svg$TypedSvg$Types$Translate, m.left, m.top)
+							])),
+						$elm_community$typed_svg$TypedSvg$Attributes$class(
+						_List_fromArray(
+							[$data_viz_lab$elm_chart_builder$Chart$Internal$Constants$componentClassName]))
+					]),
+				paths),
+				A2(
+				$elm_community$typed_svg$TypedSvg$g,
+				_List_fromArray(
+					[
+						$elm_community$typed_svg$TypedSvg$Attributes$transform(
+						_List_fromArray(
+							[
+								A2($elm_community$typed_svg$TypedSvg$Types$Translate, m.left, m.top)
+							])),
+						$elm_community$typed_svg$TypedSvg$Attributes$class(
+						_List_fromArray(
+							[$data_viz_lab$elm_chart_builder$Chart$Internal$Constants$componentClassName]))
+					]),
+				A2(
+					$elm$core$List$indexedMap,
+					F2(
+						function (idx, combinedItem) {
+							return A5($data_viz_lab$elm_chart_builder$Chart$Internal$Line$areaLabel, config, xScale, yScale, idx, combinedItem);
+						}),
+					combinedDataWithStack)),
+				A4($data_viz_lab$elm_chart_builder$Chart$Internal$Line$symbolGroup, config, xScale, yScale, combinedData)
+			]);
+	});
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Helpers$stackDataGroupContinuous = F2(
+	function (values, groupData) {
+		return A3(
+			$elm$core$List$map2,
+			F2(
+				function (vals, group) {
+					return {
+						groupLabel: group.groupLabel,
+						points: A3(
+							$elm$core$List$map2,
+							F2(
+								function (_v0, _v1) {
+									var y = _v0.b;
+									var x = _v1.a;
+									return _Utils_Tuple2(x, y);
+								}),
+							vals,
+							group.points)
+					};
+				}),
+			values,
+			groupData);
+	});
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Line$renderLineStacked = F2(
+	function (lineDraw, _v0) {
+		var data = _v0.a;
+		var config = _v0.b;
+		var timeData = $data_viz_lab$elm_chart_builder$Chart$Internal$Type$dataContinuousGroupToDataTime(data);
+		var continuousData = $data_viz_lab$elm_chart_builder$Chart$Internal$Type$dataContinuousGroupToDataContinuous(data);
+		var dataStacked = $data_viz_lab$elm_chart_builder$Chart$Internal$Type$dataContinuousGroupToDataContinuousStacked(continuousData);
+		var stackedConfig = function () {
+			if (lineDraw.$ === 'Line') {
+				return {data: dataStacked, offset: $gampleman$elm_visualization$Shape$stackOffsetNone, order: $elm$core$Basics$identity};
+			} else {
+				var stackingMethod = lineDraw.a;
+				return {data: dataStacked, offset: stackingMethod, order: $elm$core$Basics$identity};
+			}
+		}();
+		var stackResult = $gampleman$elm_visualization$Shape$stack(stackedConfig);
+		var timeDomain = A3(
+			$data_viz_lab$elm_chart_builder$Chart$Internal$Type$getDomainTimeFromData,
+			$elm$core$Maybe$Just(stackResult.extent),
+			$data_viz_lab$elm_chart_builder$Chart$Internal$Type$getDomainTime(config),
+			timeData);
+		var continuousDomain = function () {
+			if (data.$ === 'DataTime') {
+				return $data_viz_lab$elm_chart_builder$Chart$Internal$Line$timeDomainToContinuousDomain(timeDomain);
+			} else {
+				return A3(
+					$data_viz_lab$elm_chart_builder$Chart$Internal$Type$getDomainContinuousFromData,
+					$elm$core$Maybe$Just(stackResult.extent),
+					$data_viz_lab$elm_chart_builder$Chart$Internal$Type$getDomainContinuous(config),
+					continuousData);
+			}
+		}();
+		var combinedData = A2($data_viz_lab$elm_chart_builder$Chart$Internal$Helpers$stackDataGroupContinuous, stackResult.values, continuousData);
+		var classNames = $elm$html$Html$Attributes$classList(
+			_List_fromArray(
+				[
+					_Utils_Tuple2($data_viz_lab$elm_chart_builder$Chart$Internal$Constants$rootClassName, true),
+					_Utils_Tuple2($data_viz_lab$elm_chart_builder$Chart$Internal$Constants$lineClassName, true)
+				]));
+		var c = $data_viz_lab$elm_chart_builder$Chart$Internal$Type$fromConfig(config);
+		var h = c.height;
+		var yRange = _Utils_Tuple2(h, 0);
+		var m = c.margin;
+		var outerH = (h + m.top) + m.bottom;
+		var w = c.width;
+		var outerW = (w + m.left) + m.right;
+		var xRange = _Utils_Tuple2(0, w);
+		var xContinuousScale = A2(
+			$gampleman$elm_visualization$Scale$linear,
+			xRange,
+			A2(
+				$elm$core$Maybe$withDefault,
+				_Utils_Tuple2(0, 0),
+				continuousDomain.x));
+		var xTimeScale = function () {
+			if (data.$ === 'DataTime') {
+				return $elm$core$Maybe$Just(
+					A3(
+						$gampleman$elm_visualization$Scale$time,
+						c.zone,
+						xRange,
+						A2(
+							$elm$core$Maybe$withDefault,
+							_Utils_Tuple2(
+								$elm$time$Time$millisToPosix(0),
+								$elm$time$Time$millisToPosix(0)),
+							timeDomain.x)));
+			} else {
+				return $elm$core$Maybe$Nothing;
+			}
+		}();
+		var yScale = A3(
+			$data_viz_lab$elm_chart_builder$Chart$Internal$Type$toContinousScale,
+			yRange,
+			A2(
+				$elm$core$Maybe$withDefault,
+				_Utils_Tuple2(0, 0),
+				continuousDomain.y),
+			c.yScale);
+		var draw = function () {
+			if (lineDraw.$ === 'Line') {
+				return A4($data_viz_lab$elm_chart_builder$Chart$Internal$Line$drawContinuousLine, config, xContinuousScale, yScale, combinedData);
+			} else {
+				return A5($data_viz_lab$elm_chart_builder$Chart$Internal$Line$drawAreas, config, xContinuousScale, yScale, stackResult, combinedData);
+			}
+		}();
+		var events = $elm$core$List$concat(
+			A2(
+				$elm$core$List$map,
+				function (e) {
+					if (e.$ === 'HoverOne') {
+						var f = e.a;
+						return A4(
+							$data_viz_lab$elm_chart_builder$Chart$Internal$Event$hoverOne,
+							c,
+							continuousData,
+							_Utils_Tuple2(xContinuousScale, yScale),
+							f);
+					} else {
+						var f = e.a;
+						return A4(
+							$data_viz_lab$elm_chart_builder$Chart$Internal$Event$hoverAll,
+							c,
+							continuousData,
+							_Utils_Tuple2(xContinuousScale, yScale),
+							f);
+					}
+				},
+				c.events));
+		var svgEl = A2(
+			$elm_community$typed_svg$TypedSvg$svg,
+			_Utils_ap(
+				_List_fromArray(
+					[
+						A4($elm_community$typed_svg$TypedSvg$Attributes$viewBox, 0, 0, outerW, outerH),
+						$elm_community$typed_svg$TypedSvg$Attributes$InPx$width(outerW),
+						$elm_community$typed_svg$TypedSvg$Attributes$InPx$height(outerH),
+						$data_viz_lab$elm_chart_builder$Chart$Internal$Type$role('img')
+					]),
+				_Utils_ap(
+					$data_viz_lab$elm_chart_builder$Chart$Internal$Type$ariaLabelledbyContent(c),
+					events)),
+			_Utils_ap(
+				$data_viz_lab$elm_chart_builder$Chart$Internal$Line$vLineAnnotation(c),
+				_Utils_ap(
+					$data_viz_lab$elm_chart_builder$Chart$Internal$Line$symbolElements(config),
+					_Utils_ap(
+						$data_viz_lab$elm_chart_builder$Chart$Internal$Type$descAndTitle(c),
+						_Utils_ap(
+							A2($data_viz_lab$elm_chart_builder$Chart$Internal$Line$continuousYAxis, c, yScale),
+							_Utils_ap(
+								A3(
+									$data_viz_lab$elm_chart_builder$Chart$Internal$Line$continuousOrTimeAxisGenerator,
+									xTimeScale,
+									xContinuousScale,
+									_Utils_Tuple2(data, config)),
+								draw))))));
+		var _v1 = c.accessibilityContent;
+		if (_v1.$ === 'AccessibilityNone') {
+			return A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[classNames]),
+				_List_fromArray(
+					[svgEl]));
+		} else {
+			return A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[classNames]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$figure,
+						_List_Nil,
+						_List_fromArray(
+							[
+								svgEl,
+								A2($data_viz_lab$elm_chart_builder$Chart$Internal$Line$tableElement, config, data)
+							]))
+					]));
+		}
+	});
+var $data_viz_lab$elm_chart_builder$Chart$Line$render = F2(
+	function (_v0, config) {
+		var externalData = _v0.a;
+		var accessor = _v0.b;
+		var data = A2(
+			$data_viz_lab$elm_chart_builder$Chart$Internal$Type$externalToDataContinuousGroup,
+			$data_viz_lab$elm_chart_builder$Chart$Internal$Type$toExternalData(externalData),
+			accessor);
+		var c = $data_viz_lab$elm_chart_builder$Chart$Internal$Type$fromConfig(config);
+		var _v1 = c.layout;
+		switch (_v1.$) {
+			case 'GroupedLine':
+				return $data_viz_lab$elm_chart_builder$Chart$Internal$Line$renderLineGrouped(
+					_Utils_Tuple2(data, config));
+			case 'StackedLine':
+				var lineDraw = _v1.a;
+				return A2(
+					$data_viz_lab$elm_chart_builder$Chart$Internal$Line$renderLineStacked,
+					lineDraw,
+					_Utils_Tuple2(data, config));
+			default:
+				return $elm$html$Html$text('');
+		}
+	});
+var $data_viz_lab$elm_chart_builder$Chart$Line$withColorPalette = F2(
+	function (palette, config) {
+		return A2(
+			$data_viz_lab$elm_chart_builder$Chart$Internal$Type$setColorResource,
+			$data_viz_lab$elm_chart_builder$Chart$Internal$Type$ColorPalette(palette),
+			config);
+	});
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$setCoreStyles = F2(
+	function (styles, _v0) {
+		var c = _v0.a;
+		return $data_viz_lab$elm_chart_builder$Chart$Internal$Type$toConfig(
+			_Utils_update(
+				c,
+				{coreStyle: styles}));
+	});
+var $data_viz_lab$elm_chart_builder$Chart$Line$withLineStyle = F2(
+	function (styles, config) {
+		return A2($data_viz_lab$elm_chart_builder$Chart$Internal$Type$setCoreStyles, styles, config);
+	});
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$setIcons = F2(
+	function (all, _v0) {
+		var c = _v0.a;
+		return $data_viz_lab$elm_chart_builder$Chart$Internal$Type$Config(
+			_Utils_update(
+				c,
+				{symbols: all}));
+	});
+var $data_viz_lab$elm_chart_builder$Chart$Line$withSymbols = $data_viz_lab$elm_chart_builder$Chart$Internal$Type$setIcons;
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$setXAxisContinuous = F2(
+	function (orientation, _v0) {
+		var c = _v0.a;
+		return $data_viz_lab$elm_chart_builder$Chart$Internal$Type$toConfig(
+			_Utils_update(
+				c,
+				{axisXContinuous: orientation}));
+	});
+var $data_viz_lab$elm_chart_builder$Chart$Line$withXAxisCont = $data_viz_lab$elm_chart_builder$Chart$Internal$Type$setXAxisContinuous;
+var $data_viz_lab$elm_chart_builder$Chart$Line$withYAxis = $data_viz_lab$elm_chart_builder$Chart$Internal$Type$setYAxisContinuous;
+var $data_viz_lab$elm_chart_builder$Chart$Line$axisBottom = $data_viz_lab$elm_chart_builder$Chart$Internal$Axis$Bottom;
+var $author$project$Line$sharedAttributes = _List_fromArray(
+	[
+		$gampleman$elm_visualization$Axis$tickSizeOuter(0),
+		$gampleman$elm_visualization$Axis$tickSizeInner(3)
+	]);
+var $gampleman$elm_visualization$Axis$Ticks = function (a) {
+	return {$: 'Ticks', a: a};
+};
+var $gampleman$elm_visualization$Axis$ticks = $gampleman$elm_visualization$Axis$Ticks;
+var $elm$core$List$sort = function (xs) {
+	return A2($elm$core$List$sortBy, $elm$core$Basics$identity, xs);
+};
+var $author$project$Line$xAxisTicks = $elm$core$List$sort(
+	$elm$core$Set$toList(
+		$elm$core$Set$fromList(
+			A2(
+				$elm$core$List$map,
+				function ($) {
+					return $.x;
+				},
+				$author$project$Data$continuousData))));
+var $author$project$Line$xAxis = $data_viz_lab$elm_chart_builder$Chart$Line$axisBottom(
+	_Utils_ap(
+		_List_fromArray(
+			[
+				$gampleman$elm_visualization$Axis$ticks($author$project$Line$xAxisTicks),
+				$gampleman$elm_visualization$Axis$tickFormat(
+				A2($elm$core$Basics$composeR, $elm$core$Basics$round, $elm$core$String$fromInt))
+			]),
+		$author$project$Line$sharedAttributes));
+var $data_viz_lab$elm_chart_builder$Chart$Line$axisLeft = $data_viz_lab$elm_chart_builder$Chart$Internal$Axis$Left;
+var $author$project$Line$yAxis = $data_viz_lab$elm_chart_builder$Chart$Line$axisLeft(
+	A2(
+		$elm$core$List$cons,
+		$gampleman$elm_visualization$Axis$tickCount(4),
+		$author$project$Line$sharedAttributes));
+var $author$project$Line$verticalGrouped = function (width) {
+	return A2(
+		$data_viz_lab$elm_chart_builder$Chart$Line$render,
+		_Utils_Tuple2($author$project$Data$continuousData, $author$project$Line$accessor),
+		A2(
+			$data_viz_lab$elm_chart_builder$Chart$Line$withXAxisCont,
+			$author$project$Line$xAxis,
+			A2(
+				$data_viz_lab$elm_chart_builder$Chart$Line$withYAxis,
+				$author$project$Line$yAxis,
+				$data_viz_lab$elm_chart_builder$Chart$Line$withGroupedLayout(
+					A2(
+						$data_viz_lab$elm_chart_builder$Chart$Line$withLineStyle,
+						_List_fromArray(
+							[
+								_Utils_Tuple2('stroke-width', '2')
+							]),
+						A2(
+							$data_viz_lab$elm_chart_builder$Chart$Line$withSymbols,
+							_List_fromArray(
+								[$author$project$Line$circle]),
+							A2(
+								$data_viz_lab$elm_chart_builder$Chart$Line$withColorPalette,
+								$author$project$Line$colorScheme,
+								$data_viz_lab$elm_chart_builder$Chart$Line$init(
+									{
+										height: $author$project$Helpers$toChartHeight(
+											$author$project$Helpers$toChartWidth(width)),
+										margin: $author$project$Helpers$margin,
+										width: $author$project$Helpers$toChartWidth(width)
+									}))))))));
+};
+var $author$project$Line$view = function (_v0) {
+	var width = _v0.width;
+	return _List_fromArray(
+		[
+			$author$project$Line$desc,
+			$author$project$Line$verticalGrouped(width),
+			$author$project$Line$dataPrev,
+			$author$project$Line$codePrev
 		]);
 };
 var $author$project$Main$view = function (model) {
@@ -10713,6 +17156,10 @@ var $author$project$Main$view = function (model) {
 				A2(
 				$author$project$Main$exampleView,
 				$author$project$Bar$view(model),
+				model),
+				A2(
+				$author$project$Main$exampleView,
+				$author$project$Line$view(model),
 				model)
 			]));
 };
