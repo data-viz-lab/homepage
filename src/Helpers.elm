@@ -1,14 +1,11 @@
 module Helpers exposing
-    ( codePrev
-    , goldenRatio
+    ( goldenRatio
     , margin
+    , marginWithLabel
     , maxPageWidth
     , toChartHeight
     , toChartWidth
     )
-
-import Html exposing (Html)
-import Html.Attributes as Attributes
 
 
 goldenRatio : Float
@@ -46,14 +43,9 @@ toChartHeight width =
 
 margin : { top : Float, right : Float, left : Float, bottom : Float }
 margin =
-    { top = 5, right = 20, bottom = 20, left = 40 }
+    { top = 10, right = 20, bottom = 20, left = 40 }
 
 
-codePrev : String -> Html msg
-codePrev content =
-    Html.div [ Attributes.class "example__code-prev" ]
-        [ Html.code [ Attributes.class "terminal" ]
-            [ Html.pre []
-                [ Html.text content ]
-            ]
-        ]
+marginWithLabel : { top : Float, right : Float, left : Float, bottom : Float }
+marginWithLabel =
+    { top = 10, right = 90, bottom = 20, left = 40 }

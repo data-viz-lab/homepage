@@ -3,6 +3,7 @@ module Line exposing (view)
 import Axis
 import Chart.Line as Line
 import Chart.Symbol as Symbol exposing (Symbol)
+import CodePrev
 import Color exposing (Color, rgb255)
 import Data
 import Helpers
@@ -22,17 +23,16 @@ circle : Symbol
 circle =
     Symbol.circle
         |> Symbol.withStyle [ ( "stroke", "white" ) ]
-        |> Symbol.withSize 10
+        |> Symbol.withSize 8
 
 
-accessor : Line.Accessor Data.ContinuousData
+accessor : Line.Accessor Data.CityTimeline
 accessor =
     Line.cont
-        (Line.AccessorCont
-            (.groupLabel >> Just)
-            .x
-            .y
-        )
+        { xGroup = .name >> Just
+        , xValue = .year
+        , yValue = .population
+        }
 
 
 valueFormatter : Float -> String
@@ -54,11 +54,7 @@ yAxis =
 
 xAxisTicks : List Float
 xAxisTicks =
-    Data.continuousData
-        |> List.map .x
-        |> Set.fromList
-        |> Set.toList
-        |> List.sort
+    [ 1950, 1960, 1970, 1980, 1990, 2000 ]
 
 
 xAxis : Line.XAxis Float
@@ -74,7 +70,7 @@ xAxis =
 verticalGrouped : Int -> Html msg
 verticalGrouped width =
     Line.init
-        { margin = Helpers.margin
+        { margin = Helpers.marginWithLabel
         , width = Helpers.toChartWidth width
         , height =
             width
@@ -82,65 +78,27 @@ verticalGrouped width =
                 |> Helpers.toChartHeight
         }
         |> Line.withColorPalette colorScheme
+        |> Line.withLabels Line.xGroupLabel
         |> Line.withSymbols [ circle ]
         |> Line.withLineStyle [ ( "stroke-width", "2" ) ]
-        |> Line.withGroupedLayout
         |> Line.withYAxis yAxis
         |> Line.withXAxisCont xAxis
-        |> Line.render ( Data.continuousData, accessor )
+        |> Line.render ( Data.citiesTimeline, accessor )
 
 
 desc : Html msg
 desc =
-    Html.div [ Attributes.class "example__desc" ]
-        [ Html.h3 [] [ Html.text "Continuous line chart with dots" ]
+    Html.section [ Attributes.class "example__desc" ]
+        [ Html.h3 [] [ Html.text "Continuous line chart with dots and labels" ]
+        , Html.p [] [ Html.text "Population in millions" ]
         , Html.a [ Attributes.href "https://github.com/data-viz-lab/homepage/blob/main/src/Line.elm" ]
             [ Html.text "source code" ]
         ]
-
-
-codePrev : Html msg
-codePrev =
-    Helpers.codePrev
-        """ 
-type alias ContinuousData =
-    { x : Float
-    , y : Float
-    , groupLabel : String
-    }
-
-accessor : Line.Accessor Data.ContinuousData
-accessor =
-    Line.cont
-        (Line.AccessorCont
-            (.groupLabel >> Just)
-            .x
-            .y
-        )
-
-verticalGrouped : Int -> Html msg
-verticalGrouped width =
-    Line.init
-        { margin = Helpers.margin
-        , width = Helpers.toChartWidth width
-        , height =
-            width
-                |> Helpers.toChartWidth
-                |> Helpers.toChartHeight
-        }
-        |> Line.withColorPalette colorScheme
-        |> Line.withSymbols [ circle ]
-        |> Line.withLineStyle [ ( "stroke-width", "2" ) ]
-        |> Line.withGroupedLayout
-        |> Line.withYAxis yAxis
-        |> Line.withXAxisCont xAxis
-        |> Line.render ( Data.continuousData, accessor )
-        """
 
 
 view : { a | width : Int } -> List (Html msg)
 view { width } =
     [ desc
     , verticalGrouped width
-    , codePrev
+    , CodePrev.codePrev CodePrev.codePrevLine
     ]

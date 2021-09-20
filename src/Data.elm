@@ -1,7 +1,7 @@
 module Data exposing
-    ( ContinuousData
+    ( CityTimeline
     , GroupData
-    , continuousData
+    , citiesTimeline
     , groupData
     )
 
@@ -42,37 +42,101 @@ groupData =
     ]
 
 
-type alias ContinuousData =
-    { x : Float
-    , y : Float
-    , groupLabel : String
+type alias CityTimeline =
+    { name : String
+    , population : Float
+    , year : Float
     }
 
 
-continuousData : List ContinuousData
-continuousData =
-    [ { groupLabel = "A"
-      , x = 1991
-      , y = 10
+citiesTimeline : List CityTimeline
+citiesTimeline =
+    [ { name = "London"
+      , population = 8
+      , year = 1950
       }
-    , { groupLabel = "A"
-      , x = 1992
-      , y = 16
+    , { name = "London"
+      , population = 8
+      , year = 1955
       }
-    , { groupLabel = "A"
-      , x = 1993
-      , y = 26
+    , { name = "London"
+      , population = 8
+      , year = 1960
       }
-    , { groupLabel = "B"
-      , x = 1991
-      , y = 13
+    , { name = "London"
+      , population = 8
+      , year = 1965
       }
-    , { groupLabel = "B"
-      , x = 1992
-      , y = 23
+    , { name = "London"
+      , population = 8
+      , year = 1970
       }
-    , { groupLabel = "B"
-      , x = 1993
-      , y = 16
+    , { name = "London"
+      , population = 7
+      , year = 1975
+      }
+    , { name = "London"
+      , population = 7
+      , year = 1980
+      }
+    , { name = "London"
+      , population = 7
+      , year = 1985
+      }
+    , { name = "London"
+      , population = 7
+      , year = 1990
+      }
+    , { name = "London"
+      , population = 7
+      , year = 1995
+      }
+    , { name = "London"
+      , population = 7
+      , year = 2000
+      }
+    , { name = "São Paolo"
+      , population = 2
+      , year = 1950
+      }
+    , { name = "São Paolo"
+      , population = 3
+      , year = 1955
+      }
+    , { name = "São Paolo"
+      , population = 4
+      , year = 1960
+      }
+    , { name = "São Paolo"
+      , population = 5
+      , year = 1965
+      }
+    , { name = "São Paolo"
+      , population = 8
+      , year = 1970
+      }
+    , { name = "São Paolo"
+      , population = 9
+      , year = 1975
+      }
+    , { name = "São Paolo"
+      , population = 12
+      , year = 1980
+      }
+    , { name = "São Paolo"
+      , population = 13
+      , year = 1985
+      }
+    , { name = "São Paolo"
+      , population = 15
+      , year = 1990
+      }
+    , { name = "São Paolo"
+      , population = 16
+      , year = 1995
+      }
+    , { name = "São Paolo"
+      , population = 17
+      , year = 2000
       }
     ]

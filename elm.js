@@ -5340,10 +5340,25 @@ var $author$project$Main$exampleView = F2(
 				]),
 			content);
 	});
-var $elm$html$Html$h1 = _VirtualDom_node('h1');
-var $elm$html$Html$h2 = _VirtualDom_node('h2');
+var $elm$html$Html$footer = _VirtualDom_node('footer');
+var $elm$html$Html$p = _VirtualDom_node('p');
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
+var $author$project$Main$footer = A2(
+	$elm$html$Html$footer,
+	_List_Nil,
+	_List_fromArray(
+		[
+			A2(
+			$elm$html$Html$p,
+			_List_Nil,
+			_List_fromArray(
+				[
+					$elm$html$Html$text('Data source: United Nations, Department of Economic and Social Affairs, Population Division (2018). World Urbanization Prospects: The 2018 Revision, Online Edition.')
+				]))
+		]));
+var $elm$html$Html$h1 = _VirtualDom_node('h1');
+var $elm$html$Html$h2 = _VirtualDom_node('h2');
 var $author$project$Main$introView = function (model) {
 	return A2(
 		$elm$html$Html$section,
@@ -5371,7 +5386,7 @@ var $author$project$Main$introView = function (model) {
 };
 var $elm$html$Html$code = _VirtualDom_node('code');
 var $elm$html$Html$pre = _VirtualDom_node('pre');
-var $author$project$Helpers$codePrev = function (content) {
+var $author$project$CodePrev$codePrev = function (content) {
 	return A2(
 		$elm$html$Html$div,
 		_List_fromArray(
@@ -5398,7 +5413,7 @@ var $author$project$Helpers$codePrev = function (content) {
 					]))
 			]));
 };
-var $author$project$Bar$codePrev = $author$project$Helpers$codePrev(' \ntype alias GroupData =\n    { x : String\n    , y : Float\n    , groupLabel : String\n    }\n\naccessor : Bar.Accessor Data.GroupData\naccessor =\n    Bar.Accessor (.groupLabel >> Just) .x .y\n\nverticalGrouped : Int -> Html msg\nverticalGrouped width =\n    Bar.init\n        { margin = Helpers.margin\n        , width = Helpers.toChartWidth width\n        , height =\n            width\n                |> Helpers.toChartWidth\n                |> Helpers.toChartHeight\n        }\n        |> Bar.withColorPalette colorScheme\n        |> Bar.withColumnTitle\n            (Bar.yColumnTitle valueFormatter)\n        |> Bar.withGroupedLayout\n        |> Bar.withYAxis yAxis\n        |> Bar.withXAxis xAxis\n        |> Bar.render ( Data.groupData, accessor )\n        ');
+var $author$project$CodePrev$codePrevBar = ' \ntype alias GroupData =\n    { x : String\n    , y : Float\n    , groupLabel : String\n    }\n\naccessor : Bar.Accessor Data.GroupData\naccessor =\n    Bar.Accessor (.groupLabel >> Just) .x .y\n\nverticalGrouped : Int -> Html msg\nverticalGrouped width =\n    Bar.init\n        { margin = margin\n        , width = width\n        , height = height\n        }\n        |> Bar.withColorPalette colorScheme\n        |> Bar.withColumnTitle\n            (Bar.yColumnTitle valueFormatter)\n        |> Bar.withGroupedLayout\n        |> Bar.withYAxis yAxis\n        |> Bar.withXAxis xAxis\n        |> Bar.render ( Data.groupData, accessor )\n        ';
 var $elm$html$Html$a = _VirtualDom_node('a');
 var $elm$html$Html$h3 = _VirtualDom_node('h3');
 var $elm$html$Html$Attributes$href = function (url) {
@@ -5408,7 +5423,7 @@ var $elm$html$Html$Attributes$href = function (url) {
 		_VirtualDom_noJavaScriptUri(url));
 };
 var $author$project$Bar$desc = A2(
-	$elm$html$Html$div,
+	$elm$html$Html$section,
 	_List_fromArray(
 		[
 			$elm$html$Html$Attributes$class('example__desc')
@@ -5421,6 +5436,13 @@ var $author$project$Bar$desc = A2(
 			_List_fromArray(
 				[
 					$elm$html$Html$text('Grouped vertical bar chart')
+				])),
+			A2(
+			$elm$html$Html$p,
+			_List_Nil,
+			_List_fromArray(
+				[
+					$elm$html$Html$text('TODO')
 				])),
 			A2(
 			$elm$html$Html$a,
@@ -5843,7 +5865,7 @@ var $data_viz_lab$elm_chart_builder$Chart$Bar$init = function (c) {
 		{height: c.height, margin: c.margin, width: c.width},
 		$data_viz_lab$elm_chart_builder$Chart$Internal$Type$defaultConfig);
 };
-var $author$project$Helpers$margin = {bottom: 20, left: 40, right: 20, top: 5};
+var $author$project$Helpers$margin = {bottom: 20, left: 40, right: 20, top: 10};
 var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$DataBand = function (a) {
 	return {$: 'DataBand', a: a};
 };
@@ -11165,12 +11187,12 @@ var $author$project$Bar$view = function (_v0) {
 		[
 			$author$project$Bar$desc,
 			$author$project$Bar$verticalGrouped(width),
-			$author$project$Bar$codePrev
+			$author$project$CodePrev$codePrev($author$project$CodePrev$codePrevBar)
 		]);
 };
-var $author$project$Line$codePrev = $author$project$Helpers$codePrev(' \ntype alias ContinuousData =\n    { x : Float\n    , y : Float\n    , groupLabel : String\n    }\n\naccessor : Line.Accessor Data.ContinuousData\naccessor =\n    Line.cont\n        (Line.AccessorCont\n            (.groupLabel >> Just)\n            .x\n            .y\n        )\n\nverticalGrouped : Int -> Html msg\nverticalGrouped width =\n    Line.init\n        { margin = Helpers.margin\n        , width = Helpers.toChartWidth width\n        , height =\n            width\n                |> Helpers.toChartWidth\n                |> Helpers.toChartHeight\n        }\n        |> Line.withColorPalette colorScheme\n        |> Line.withSymbols [ circle ]\n        |> Line.withLineStyle [ ( "stroke-width", "2" ) ]\n        |> Line.withGroupedLayout\n        |> Line.withYAxis yAxis\n        |> Line.withXAxisCont xAxis\n        |> Line.render ( Data.continuousData, accessor )\n        ');
+var $author$project$CodePrev$codePrevLine = ' \ntype alias CityTimeline =\n    { name : String\n    , population : Float\n    , year : Float\n    }\n\naccessor : Line.Accessor Data.ContinuousData\naccessor =\n    Line.cont\n        { xGroup = .name >> Just\n        , xValue = .year\n        , yValue = .population\n        }\n\nverticalGrouped : Int -> Html msg\nverticalGrouped width =\n    Line.init\n        { margin = margin\n        , width = width\n        , height = height\n        }\n        |> Line.withColorPalette colorScheme\n        |> Line.withLabels Line.xGroupLabel\n        |> Line.withSymbols [ circle ]\n        |> Line.withLineStyle [ ( "stroke-width", "2" ) ]\n        |> Line.withYAxis yAxis\n        |> Line.withXAxisCont xAxis\n        |> Line.render ( Data.citiesTimeline, accessor )\n        ';
 var $author$project$Line$desc = A2(
-	$elm$html$Html$div,
+	$elm$html$Html$section,
 	_List_fromArray(
 		[
 			$elm$html$Html$Attributes$class('example__desc')
@@ -11182,7 +11204,14 @@ var $author$project$Line$desc = A2(
 			_List_Nil,
 			_List_fromArray(
 				[
-					$elm$html$Html$text('Continuous line chart with dots')
+					$elm$html$Html$text('Continuous line chart with dots and labels')
+				])),
+			A2(
+			$elm$html$Html$p,
+			_List_Nil,
+			_List_fromArray(
+				[
+					$elm$html$Html$text('Population in millions')
 				])),
 			A2(
 			$elm$html$Html$a,
@@ -11195,10 +11224,6 @@ var $author$project$Line$desc = A2(
 					$elm$html$Html$text('source code')
 				]))
 		]));
-var $data_viz_lab$elm_chart_builder$Chart$Line$AccessorCont = F3(
-	function (xGroup, xValue, yValue) {
-		return {xGroup: xGroup, xValue: xValue, yValue: yValue};
-	});
 var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$AccessorContinuous = function (a) {
 	return {$: 'AccessorContinuous', a: a};
 };
@@ -11206,20 +11231,20 @@ var $data_viz_lab$elm_chart_builder$Chart$Line$cont = function (acc) {
 	return $data_viz_lab$elm_chart_builder$Chart$Internal$Type$AccessorContinuous(acc);
 };
 var $author$project$Line$accessor = $data_viz_lab$elm_chart_builder$Chart$Line$cont(
-	A3(
-		$data_viz_lab$elm_chart_builder$Chart$Line$AccessorCont,
-		A2(
+	{
+		xGroup: A2(
 			$elm$core$Basics$composeR,
 			function ($) {
-				return $.groupLabel;
+				return $.name;
 			},
 			$elm$core$Maybe$Just),
-		function ($) {
-			return $.x;
+		xValue: function ($) {
+			return $.year;
 		},
-		function ($) {
-			return $.y;
-		}));
+		yValue: function ($) {
+			return $.population;
+		}
+	});
 var $data_viz_lab$elm_chart_builder$Chart$Internal$Symbol$Circle = function (a) {
 	return {$: 'Circle', a: a};
 };
@@ -11301,7 +11326,7 @@ var $data_viz_lab$elm_chart_builder$Chart$Symbol$withStyle = F2(
 	});
 var $author$project$Line$circle = A2(
 	$data_viz_lab$elm_chart_builder$Chart$Symbol$withSize,
-	10,
+	8,
 	A2(
 		$data_viz_lab$elm_chart_builder$Chart$Symbol$withStyle,
 		_List_fromArray(
@@ -11309,16 +11334,32 @@ var $author$project$Line$circle = A2(
 				_Utils_Tuple2('stroke', 'white')
 			]),
 		$data_viz_lab$elm_chart_builder$Chart$Symbol$circle));
-var $author$project$Line$colorScheme = $gampleman$elm_visualization$Scale$Color$tableau10;
-var $author$project$Data$continuousData = _List_fromArray(
+var $author$project$Data$citiesTimeline = _List_fromArray(
 	[
-		{groupLabel: 'A', x: 1991, y: 10},
-		{groupLabel: 'A', x: 1992, y: 16},
-		{groupLabel: 'A', x: 1993, y: 26},
-		{groupLabel: 'B', x: 1991, y: 13},
-		{groupLabel: 'B', x: 1992, y: 23},
-		{groupLabel: 'B', x: 1993, y: 16}
+		{name: 'London', population: 8, year: 1950},
+		{name: 'London', population: 8, year: 1955},
+		{name: 'London', population: 8, year: 1960},
+		{name: 'London', population: 8, year: 1965},
+		{name: 'London', population: 8, year: 1970},
+		{name: 'London', population: 7, year: 1975},
+		{name: 'London', population: 7, year: 1980},
+		{name: 'London', population: 7, year: 1985},
+		{name: 'London', population: 7, year: 1990},
+		{name: 'London', population: 7, year: 1995},
+		{name: 'London', population: 7, year: 2000},
+		{name: 'São Paolo', population: 2, year: 1950},
+		{name: 'São Paolo', population: 3, year: 1955},
+		{name: 'São Paolo', population: 4, year: 1960},
+		{name: 'São Paolo', population: 5, year: 1965},
+		{name: 'São Paolo', population: 8, year: 1970},
+		{name: 'São Paolo', population: 9, year: 1975},
+		{name: 'São Paolo', population: 12, year: 1980},
+		{name: 'São Paolo', population: 13, year: 1985},
+		{name: 'São Paolo', population: 15, year: 1990},
+		{name: 'São Paolo', population: 16, year: 1995},
+		{name: 'São Paolo', population: 17, year: 2000}
 	]);
+var $author$project$Line$colorScheme = $gampleman$elm_visualization$Scale$Color$tableau10;
 var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$GroupedLine = {$: 'GroupedLine'};
 var $data_viz_lab$elm_chart_builder$Chart$Line$withGroupedLayout = function (config) {
 	return A2($data_viz_lab$elm_chart_builder$Chart$Internal$Type$setLayout, $data_viz_lab$elm_chart_builder$Chart$Internal$Type$GroupedLine, config);
@@ -11329,6 +11370,7 @@ var $data_viz_lab$elm_chart_builder$Chart$Line$init = function (c) {
 		{height: c.height, margin: c.margin, width: c.width},
 		$data_viz_lab$elm_chart_builder$Chart$Line$withGroupedLayout($data_viz_lab$elm_chart_builder$Chart$Internal$Type$defaultConfig));
 };
+var $author$project$Helpers$marginWithLabel = {bottom: 20, left: 40, right: 90, top: 10};
 var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$DataContinuous = function (a) {
 	return {$: 'DataContinuous', a: a};
 };
@@ -17039,6 +17081,21 @@ var $data_viz_lab$elm_chart_builder$Chart$Line$withColorPalette = F2(
 			$data_viz_lab$elm_chart_builder$Chart$Internal$Type$ColorPalette(palette),
 			config);
 	});
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$XGroupLabel = {$: 'XGroupLabel'};
+var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$showXGroupLabel = function (_v0) {
+	var c = _v0.a;
+	return $data_viz_lab$elm_chart_builder$Chart$Internal$Type$toConfig(
+		_Utils_update(
+			c,
+			{showLabels: $data_viz_lab$elm_chart_builder$Chart$Internal$Type$XGroupLabel}));
+};
+var $data_viz_lab$elm_chart_builder$Chart$Line$withLabels = function (label) {
+	if (label.$ === 'XGroupLabel') {
+		return $data_viz_lab$elm_chart_builder$Chart$Internal$Type$showXGroupLabel;
+	} else {
+		return $elm$core$Basics$identity;
+	}
+};
 var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$setCoreStyles = F2(
 	function (styles, _v0) {
 		var c = _v0.a;
@@ -17080,18 +17137,8 @@ var $gampleman$elm_visualization$Axis$Ticks = function (a) {
 	return {$: 'Ticks', a: a};
 };
 var $gampleman$elm_visualization$Axis$ticks = $gampleman$elm_visualization$Axis$Ticks;
-var $elm$core$List$sort = function (xs) {
-	return A2($elm$core$List$sortBy, $elm$core$Basics$identity, xs);
-};
-var $author$project$Line$xAxisTicks = $elm$core$List$sort(
-	$elm$core$Set$toList(
-		$elm$core$Set$fromList(
-			A2(
-				$elm$core$List$map,
-				function ($) {
-					return $.x;
-				},
-				$author$project$Data$continuousData))));
+var $author$project$Line$xAxisTicks = _List_fromArray(
+	[1950, 1960, 1970, 1980, 1990, 2000]);
 var $author$project$Line$xAxis = $data_viz_lab$elm_chart_builder$Chart$Line$axisBottom(
 	_Utils_ap(
 		_List_fromArray(
@@ -17101,6 +17148,7 @@ var $author$project$Line$xAxis = $data_viz_lab$elm_chart_builder$Chart$Line$axis
 				A2($elm$core$Basics$composeR, $elm$core$Basics$round, $elm$core$String$fromInt))
 			]),
 		$author$project$Line$sharedAttributes));
+var $data_viz_lab$elm_chart_builder$Chart$Line$xGroupLabel = $data_viz_lab$elm_chart_builder$Chart$Internal$Type$XGroupLabel;
 var $data_viz_lab$elm_chart_builder$Chart$Line$axisLeft = $data_viz_lab$elm_chart_builder$Chart$Internal$Axis$Left;
 var $author$project$Line$yAxis = $data_viz_lab$elm_chart_builder$Chart$Line$axisLeft(
 	A2(
@@ -17110,24 +17158,26 @@ var $author$project$Line$yAxis = $data_viz_lab$elm_chart_builder$Chart$Line$axis
 var $author$project$Line$verticalGrouped = function (width) {
 	return A2(
 		$data_viz_lab$elm_chart_builder$Chart$Line$render,
-		_Utils_Tuple2($author$project$Data$continuousData, $author$project$Line$accessor),
+		_Utils_Tuple2($author$project$Data$citiesTimeline, $author$project$Line$accessor),
 		A2(
 			$data_viz_lab$elm_chart_builder$Chart$Line$withXAxisCont,
 			$author$project$Line$xAxis,
 			A2(
 				$data_viz_lab$elm_chart_builder$Chart$Line$withYAxis,
 				$author$project$Line$yAxis,
-				$data_viz_lab$elm_chart_builder$Chart$Line$withGroupedLayout(
+				A2(
+					$data_viz_lab$elm_chart_builder$Chart$Line$withLineStyle,
+					_List_fromArray(
+						[
+							_Utils_Tuple2('stroke-width', '2')
+						]),
 					A2(
-						$data_viz_lab$elm_chart_builder$Chart$Line$withLineStyle,
+						$data_viz_lab$elm_chart_builder$Chart$Line$withSymbols,
 						_List_fromArray(
-							[
-								_Utils_Tuple2('stroke-width', '2')
-							]),
+							[$author$project$Line$circle]),
 						A2(
-							$data_viz_lab$elm_chart_builder$Chart$Line$withSymbols,
-							_List_fromArray(
-								[$author$project$Line$circle]),
+							$data_viz_lab$elm_chart_builder$Chart$Line$withLabels,
+							$data_viz_lab$elm_chart_builder$Chart$Line$xGroupLabel,
 							A2(
 								$data_viz_lab$elm_chart_builder$Chart$Line$withColorPalette,
 								$author$project$Line$colorScheme,
@@ -17135,7 +17185,7 @@ var $author$project$Line$verticalGrouped = function (width) {
 									{
 										height: $author$project$Helpers$toChartHeight(
 											$author$project$Helpers$toChartWidth(width)),
-										margin: $author$project$Helpers$margin,
+										margin: $author$project$Helpers$marginWithLabel,
 										width: $author$project$Helpers$toChartWidth(width)
 									}))))))));
 };
@@ -17145,7 +17195,7 @@ var $author$project$Line$view = function (_v0) {
 		[
 			$author$project$Line$desc,
 			$author$project$Line$verticalGrouped(width),
-			$author$project$Line$codePrev
+			$author$project$CodePrev$codePrev($author$project$CodePrev$codePrevLine)
 		]);
 };
 var $author$project$Main$view = function (model) {
@@ -17165,7 +17215,8 @@ var $author$project$Main$view = function (model) {
 				A2(
 				$author$project$Main$exampleView,
 				$author$project$Line$view(model),
-				model)
+				model),
+				$author$project$Main$footer
 			]));
 };
 var $author$project$Main$main = $elm$browser$Browser$element(

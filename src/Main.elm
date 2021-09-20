@@ -41,6 +41,7 @@ view model =
         [ introView model
         , exampleView (Bar.view model) model
         , exampleView (Line.view model) model
+        , footer
         ]
 
 
@@ -67,6 +68,13 @@ exampleView content model =
         , Attributes.style "height" (height ++ "px")
         ]
         content
+
+
+footer : Html msg
+footer =
+    Html.footer []
+        [ Html.p [] [ Html.text "Data source: United Nations, Department of Economic and Social Affairs, Population Division (2018). World Urbanization Prospects: The 2018 Revision, Online Edition." ]
+        ]
 
 
 
