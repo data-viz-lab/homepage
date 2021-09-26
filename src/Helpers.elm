@@ -15,7 +15,7 @@ goldenRatio =
 
 maxPageWidth : Int
 maxPageWidth =
-    1400
+    1800
 
 
 toChartWidth : Int -> Float
@@ -43,9 +43,9 @@ toChartHeight width =
 
 margin : { top : Float, right : Float, left : Float, bottom : Float }
 margin =
-    { top = 10, right = 20, bottom = 20, left = 40 }
+    { top = 10, right = 20, bottom = 20, left = 60 }
 
 
 marginWithLabel : { top : Float, right : Float, left : Float, bottom : Float }
 marginWithLabel =
-    { top = 10, right = 90, bottom = 20, left = 40 }
+    { top = 10, right = 90, bottom = 20, left = 60 }

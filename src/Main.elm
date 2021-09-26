@@ -1,11 +1,14 @@
 module Main exposing (..)
 
 import Bar
+import BarStacked
 import Browser
 import Helpers
 import Html exposing (Html)
 import Html.Attributes as Attributes
 import Line
+import LineAnimated
+import Task
 
 
 
@@ -13,7 +16,10 @@ import Line
 
 
 type alias Model =
-    { width : Int, height : Int }
+    { width : Int
+    , height : Int
+    , lineAnimated : LineAnimated.Model
+    }
 
 
 
@@ -22,6 +28,7 @@ type alias Model =
 
 type Msg
     = NoOp
+    | LineAnimatedMsg LineAnimated.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -29,6 +36,14 @@ update msg model =
     case msg of
         NoOp ->
             ( model, Cmd.none )
+
+        LineAnimatedMsg subMsg ->
+            LineAnimated.update subMsg model.lineAnimated
+                |> (\( subModel, subCmd ) ->
+                        ( { model | lineAnimated = subModel }
+                        , Cmd.map LineAnimatedMsg subCmd
+                        )
+                   )
 
 
 
@@ -39,8 +54,10 @@ view : Model -> Html Msg
 view model =
     Html.div [ Attributes.class "content" ]
         [ introView model
-        , exampleView (Bar.view model) model
+        , exampleView (LineAnimated.view model model.lineAnimated) model
         , exampleView (Line.view model) model
+        , exampleView (BarStacked.view model) model
+        , exampleView (Bar.view model) model
         , footer
         ]
 
@@ -82,9 +99,10 @@ footer =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions _ =
+subscriptions model =
     Sub.batch
-        []
+        [ Sub.map LineAnimatedMsg (LineAnimated.subscriptions model.lineAnimated)
+        ]
 
 
 
@@ -93,7 +111,12 @@ subscriptions _ =
 
 init : { width : Int, height : Int } -> ( Model, Cmd Msg )
 init { width, height } =
-    ( { width = width, height = height }, Cmd.none )
+    ( { width = width
+      , height = height
+      , lineAnimated = LineAnimated.initialModel
+      }
+    , Cmd.map LineAnimatedMsg (Task.perform identity (Task.succeed LineAnimated.StartAnimation))
+    )
 
 
 
